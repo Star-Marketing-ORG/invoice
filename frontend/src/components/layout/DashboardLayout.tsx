@@ -1,13 +1,11 @@
-import { type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { Outlet } from "react-router-dom";
 
-interface DashboardLayoutProps {
-  children: ReactNode;
-}
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+
+export function DashboardLayout() {
   return (
     <div className="flex h-screen  overflow-hidden p-6 gap-8">
       {/* Sidebar - Fixed Left */}
@@ -25,7 +23,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            {children}
+            <Outlet />
           </motion.div>
         </main>
       </div>

@@ -14,11 +14,12 @@ import UpdateService from "./pages/UpdatePage/UpdateService";
 import UpdateCategory from "./pages/UpdatePage/UpdateCategory";
 import Profile from "./pages/auth/Profile";
 import { useAuthStore } from "./store/authStore";
-import { useEffect } from "react";  
+import { useEffect } from "react";
 import Payments from "./pages/TablePage/Payments";
 import UpdatePayment from "./pages/UpdatePage/UpdatePayment";
 import NewQuotation from "./pages/NewPage/NewQuotation";
-import Setting from "./pages/auth/Setting"; 
+import Setting from "./pages/auth/Setting";
+import LPHomepage from "./pages/LPPage/LPHomepage";
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
@@ -37,10 +38,13 @@ function App() {
 
   return (
     <div className="">
-
-      <DashboardLayout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
+      <Routes>
+        {/* Landing page route - outside dashboard layout */}
+        <Route path="/" element={<LPHomepage />} />
+        
+        {/* Dashboard routes - using layout route pattern */}
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/quotations" element={<Quotations />} />
           <Route path="/customers" element={<Customers />} />
@@ -48,20 +52,20 @@ function App() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/settings" element={<Setting />} />
-          // NEW
+          {/* NEW */}
           <Route path="/invoice/new-invoice" element={<NewInvoice />} />
           <Route path="/quotation/new-quotation" element={<NewQuotation />} />
-          //UPDATE
+          {/* UPDATE */}
           <Route path="/invoice/:id" element={<UpdateInvoice />} />
           <Route path="/quotation/:id" element={<UpdateQuotation />} />
           <Route path="/customer/:id" element={<UpdateCustomer />} />
           <Route path="/service/:id" element={<UpdateService />} />
           <Route path="/category/:id" element={<UpdateCategory />} />
           <Route path="/payment/:id" element={<UpdatePayment />} />
-          //PROFILE
+          {/* PROFILE */}
           <Route path="/profile" element={<Profile />} />
-        </Routes>
-      </DashboardLayout>
+        </Route>
+      </Routes>
     </div>
   );
 }

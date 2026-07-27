@@ -3,7 +3,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* 3 Main Colors */
   --color-brand: #2563eb;
   --color-brand-light: #dbeafe;
   --color-success: #059669;
@@ -11,39 +10,32 @@
   --color-danger: #dc2626;
   --color-danger-light: #fee2e2;
 
-  /* Surfaces & Backgrounds */
   --color-surface: #f8fafc;
   --color-surface-card: #ffffff;
   --color-surface-hover: #f1f5f9;
 
-  /* Text */
   --color-text-primary: #0f172a;
   --color-text-secondary: #475569;
   --color-text-muted: #94a3b8;
 
-  /* Borders */
   --color-border: #e2e8f0;
   --color-border-light: #f1f5f9;
 
-  /* Border Radius */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-xl: 24px;
   --radius-full: 9999px;
 
-  /* Shadows */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-card-hover: 0 10px 25px rgba(0, 0, 0, 0.08);
   --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.12);
   --shadow-button: 0 2px 8px rgba(37, 99, 235, 0.25);
 
-  /* Spacing (if needed beyond default) */
   --spacing-page: 32px;
   --spacing-section: 24px;
   --spacing-card: 20px;
 
-  /* Font Sizes */
   --font-size-caption: 12px;
   --font-size-body: 14px;
   --font-size-base: 16px;
@@ -52,13 +44,70 @@
   --font-size-2xl: 24px;
   --font-size-3xl: 30px;
 
-  /* Transitions */
   --transition-fast: 150ms ease;
   --transition-base: 200ms ease;
   --transition-slow: 300ms ease;
+
+  --animate-float-slow: float-slow 6s ease-in-out infinite;
+  --animate-float-medium: float-medium 6.5s ease-in-out infinite;
+  --animate-float-slower: float-slower 5.5s ease-in-out infinite;
+  --animate-float-medium-slow: float-medium-slow 7s ease-in-out infinite;
+
+  --keyframe-float-slow-0-100: '{ "transform": "translateY(0px)" }';
+  --keyframe-float-slow-50: '{ "transform": "translateY(-8px)" }';
+  --keyframe-float-medium-0-100: '{ "transform": "translateY(0px)" }';
+  --keyframe-float-medium-50: '{ "transform": "translateY(-10px)" }';
+  --keyframe-float-slower-0-100: '{ "transform": "translateY(0px)" }';
+  --keyframe-float-slower-50: '{ "transform": "translateY(-6px)" }';
+  --keyframe-float-medium-slow-0-100: '{ "transform": "translateY(0px)" }';
+  --keyframe-float-medium-slow-50: '{ "transform": "translateY(-9px)" }';
 }
 
-/* Base Styles */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes float-medium {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes float-slower {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes float-medium-slow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+html {
+  scroll-padding-top: 80px;
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: "Manrope", sans-serif;
   color: var(--color-text-primary);
@@ -67,7 +116,6 @@ body {
   background: #f0f2f6;
 }
 
-/* Monospace for numbers */
 .mono {
   font-family: "JetBrains Mono", monospace;
   font-variant-numeric: tabular-nums;
@@ -78,7 +126,6 @@ button {
   font-weight: bold;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
 }
@@ -96,13 +143,11 @@ button {
   background: #94a3b8;
 }
 
-/* Selection Color */
 ::selection {
   background-color: var(--color-brand-light);
   color: var(--color-brand);
 }
 
-/* Focus Ring Utility */
 .focus-ring {
   outline: 2px solid var(--color-brand);
   outline-offset: 2px;
@@ -119,4 +164,13 @@ button {
 
 .animate-slide-left {
   animation: slideLeft 0.3s ease-out;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
