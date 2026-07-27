@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --watch src --watch ../packages/shared --ext ts --exec tsx src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

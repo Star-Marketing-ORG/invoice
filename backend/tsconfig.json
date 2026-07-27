@@ -5,13 +5,17 @@
     "moduleResolution": "node",
     "ignoreDeprecations": "6.0",
     "outDir": "./dist",
-    "rootDir": "..",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@invoice/shared": ["../packages/shared"]
+    },
+    "baseUrl": "."
   },
- "include": ["src/**/*", "../packages/shared/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
