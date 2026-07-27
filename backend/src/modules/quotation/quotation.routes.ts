@@ -7,15 +7,14 @@ import { authorize } from "../../common/middleware/authorize.middleware";
 
 const router = Router();
 
-
 router.get("/", quotationController.getAllQuotations);
 router.get("/search", quotationController.searchQuotations);
 router.get("/filter", quotationController.filterQuotations);
 router.get("/:id", quotationController.getQuotationById);
 
-router.post("/", authorize("ADMIN"), validate(createQuotationSchema), quotationController.createQuotation);
-router.put("/:id", authorize("ADMIN"), validate(updateQuotationSchema), quotationController.updateQuotation);
-router.delete("/:id", authorize("ADMIN"), quotationController.deleteQuotation);
-router.patch("/:id/status", authorize("ADMIN"), validate(updateQuotationStatusSchema), quotationController.updateQuotationStatus);
+router.post("/", authMiddleware, authorize("ADMIN"), validate(createQuotationSchema), quotationController.createQuotation);
+router.put("/:id", authMiddleware, authorize("ADMIN"), validate(updateQuotationSchema), quotationController.updateQuotation);
+router.patch("/:id/status", authMiddleware, authorize("ADMIN"), validate(updateQuotationStatusSchema), quotationController.updateQuotationStatus);
+router.delete("/:id", authMiddleware, authorize("ADMIN"), quotationController.deleteQuotation);
 
 export { router as quotationRouter };

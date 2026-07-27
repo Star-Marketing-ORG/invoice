@@ -9,7 +9,10 @@ describe('Service API - Integration Tests', () => {
   beforeAll(async () => {
     const res = await request(app)
       .post('/api/v1/auth/login')
-      .send({ email: 'ritesh@gmail.com', password: '12345678' });
+      .send({
+        email: process.env.TEST_USER_EMAIL,
+        password: process.env.TEST_USER_PASSWORD,
+      });
     
     const cookies = res.headers['set-cookie'];
     authCookie = Array.isArray(cookies) ? cookies[0] : cookies;

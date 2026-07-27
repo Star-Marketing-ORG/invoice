@@ -10,29 +10,29 @@ describe('Auth API - Integration Tests', () => {
       const res = await request(app)
         .post('/api/v1/auth/login')
         .send({
-          email: 'ritesh@gmail.com',
-          password: '12345678',
+          email: process.env.TEST_USER_EMAIL,
+          password: process.env.TEST_USER_PASSWORD,
         });
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.message).toBe('Login successful');
-      expect(res.body.data.user.email).toBe('ritesh@gmail.com');
+      expect(res.body.data.user.email).toBe(process.env.TEST_USER_EMAIL);
       expect(res.body.data.user.role).toBe('ADMIN');
 
       // Get cookie from response headers
       const cookies = res.headers['set-cookie'];
       expect(cookies).toBeDefined();
       authCookie = Array.isArray(cookies) ? cookies[0] : cookies;
-      expect(authCookie).toContain('twipra-token');
+      expect(authCookie).toContain('invoice-token');
     });
 
     it('should reject login with wrong password', async () => {
       const res = await request(app)
         .post('/api/v1/auth/login')
         .send({
-          email: 'ritesh@gmail.com',
-          password: 'wrongpassword',
+          email: process.env.TEST_USER_EMAIL,
+          password: process.env.TEST_WRONG_PASSWORD || 'wrongpassword',
         });
 
       expect(res.status).toBe(401);
@@ -43,7 +43,7 @@ describe('Auth API - Integration Tests', () => {
       const res = await request(app)
         .post('/api/v1/auth/login')
         .send({
-          password: '12345678',
+          password: process.env.TEST_USER_PASSWORD,
         });
 
       expect(res.status).toBe(400);
@@ -53,7 +53,7 @@ describe('Auth API - Integration Tests', () => {
       const res = await request(app)
         .post('/api/v1/auth/login')
         .send({
-          email: 'ritesh@gmail.com',
+          email: process.env.TEST_USER_EMAIL,
         });
 
       expect(res.status).toBe(400);
@@ -63,67 +63,72 @@ describe('Auth API - Integration Tests', () => {
       const res = await request(app)
         .post('/api/v1/auth/login')
         .send({
-          email: 'nonexist@test.com',
-          password: '12345678',
+          email: process.env.TEST_NONEXISTENT_EMAIL || 'nonexist@test.com',
+          password: process.env.TEST_USER_PASSWORD,
         });
 
       expect(res.status).toBe(401);
     });
   });
-});
 
+  describe('GET /api/v1/auth/me', () => {
+    it('should return current user with valid cookie', async () => {
+      // Login first
+      const loginRes = await request(app)
+        .post('/api/v1/auth/login')
+        .send({
+          email: process.env.TEST_USER_EMAIL,
+          password: process.env.TEST_USER_PASSWORD,
+        });
+      
+      const cookies = loginRes.headers['set-cookie'];
+      const cookie = Array.isArray(cookies) ? cookies[0] : cookies;
 
-describe('GET /api/v1/auth/me', () => {
-  it('should return current user with valid cookie', async () => {
-    // Login first
-    const loginRes = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email: 'ritesh@gmail.com', password: '12345678' });
-    
-    const cookies = loginRes.headers['set-cookie'];
-    const cookie = Array.isArray(cookies) ? cookies[0] : cookies;
+      const res = await request(app)
+        .get('/api/v1/auth/me')
+        .set('Cookie', cookie);
 
-    const res = await request(app)
-      .get('/api/v1/auth/me')
-      .set('Cookie', cookie);
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toHaveProperty('id');
+      expect(res.body.data.email).toBe(process.env.TEST_USER_EMAIL);
+      expect(res.body.data.role).toBe('ADMIN');
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data).toHaveProperty('id');
-    expect(res.body.data.email).toBe('ritesh@gmail.com');
-    expect(res.body.data.role).toBe('ADMIN');
+    it('should reject without cookie', async () => {
+      const res = await request(app)
+        .get('/api/v1/auth/me');
+
+      expect(res.status).toBe(401);
+    });
   });
 
-  it('should reject without cookie', async () => {
-    const res = await request(app)
-      .get('/api/v1/auth/me');
+  describe('POST /api/v1/auth/logout', () => {
+    it('should logout and clear cookie', async () => {
+      // Login first
+      const loginRes = await request(app)
+        .post('/api/v1/auth/login')
+        .send({
+          email: process.env.TEST_USER_EMAIL,
+          password: process.env.TEST_USER_PASSWORD,
+        });
+      
+      const cookies = loginRes.headers['set-cookie'];
+      const cookie = Array.isArray(cookies) ? cookies[0] : cookies;
 
-    expect(res.status).toBe(401);
-  });
-});
+      const res = await request(app)
+        .post('/api/v1/auth/logout')
+        .set('Cookie', cookie);
 
-describe('POST /api/v1/auth/logout', () => {
-  it('should logout and clear cookie', async () => {
-    // Login first
-    const loginRes = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email: 'ritesh@gmail.com', password: '12345678' });
-    
-    const cookies = loginRes.headers['set-cookie'];
-    const cookie = Array.isArray(cookies) ? cookies[0] : cookies;
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+    });
 
-    const res = await request(app)
-      .post('/api/v1/auth/logout')
-      .set('Cookie', cookie);
+    it('should reject logout without cookie', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/logout');
 
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-  });
-
-  it('should reject logout without cookie', async () => {
-    const res = await request(app)
-      .post('/api/v1/auth/logout');
-
-    expect(res.status).toBe(401);
+      expect(res.status).toBe(401);
+    });
   });
 });

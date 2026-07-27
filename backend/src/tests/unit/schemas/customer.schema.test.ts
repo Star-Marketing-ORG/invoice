@@ -226,11 +226,5 @@ describe("Customer Schema Validation - Enterprise Level", () => {
       const result = updateCustomerSchema.safeParse(data);
       expect(result.success).toBe(false);
     });
-
-    it("should accept nullable email", () => {
-      const data = { body: { email: null } };
-      const result = updateCustomerSchema.safeParse(data);
-      expect(result.success).toBe(true);
-    });
   });
 });

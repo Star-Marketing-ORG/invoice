@@ -7,34 +7,27 @@ import { authorize } from "../../common/middleware/authorize.middleware";
 
 const router = Router();
 
-
-// Get all customers
 router.get("/", customerController.getAllCustomers);
-
 router.get("/search", customerController.searchCustomers);
-
 router.get("/filter", customerController.filterCustomers);
-
-// Get single customer
 router.get("/:id", customerController.getCustomerById);
 
-// Create customer
 router.post(
   "/",
+  authMiddleware,
   authorize("ADMIN"),
   validate(createCustomerSchema),
   customerController.createCustomer,
 );
 
-// Update customer
 router.put(
   "/:id",
+  authMiddleware,
   authorize("ADMIN"),
   validate(updateCustomerSchema),
   customerController.updateCustomer,
 );
 
-// Delete customer
-router.delete("/:id", authorize("ADMIN"), customerController.deleteCustomer);
+router.delete("/:id", authMiddleware, authorize("ADMIN"), customerController.deleteCustomer);
 
 export { router as customerRouter };

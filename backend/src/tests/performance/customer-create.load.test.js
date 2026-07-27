@@ -10,8 +10,8 @@ let globalCounter = 0;
 
 export function setup() {
   const res = http.post('http://localhost:4000/api/v1/auth/login', JSON.stringify({
-    email: 'ritesh@gmail.com',
-    password: '12345678',
+    email: __ENV.TEST_USER_EMAIL,
+    password: __ENV.TEST_USER_PASSWORD,
   }), {
     headers: { 'Content-Type': 'application/json' },
   });

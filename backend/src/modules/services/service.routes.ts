@@ -11,18 +11,23 @@ router.get("/", serviceController.getAllServices);
 router.get("/search", serviceController.searchServices);
 router.get("/filter", serviceController.filterServices);
 router.get("/:id", serviceController.getServiceById);
+
 router.post(
   "/",
+  authMiddleware,
   authorize("ADMIN"),
   validate(createServiceSchema),
   serviceController.createService,
 );
+
 router.put(
   "/:id",
+  authMiddleware,
   authorize("ADMIN"),
   validate(updateServiceSchema),
   serviceController.updateService,
 );
-router.delete("/:id", authorize("ADMIN"), serviceController.deleteService);
+
+router.delete("/:id", authMiddleware, authorize("ADMIN"), serviceController.deleteService);
 
 export { router as serviceRouter };

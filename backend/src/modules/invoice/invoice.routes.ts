@@ -15,24 +15,31 @@ router.get("/", invoiceController.getAllInvoices);
 router.get("/search", invoiceController.searchInvoices);
 router.get("/filter", invoiceController.filterInvoices);
 router.get("/:id", invoiceController.getInvoiceById);
+
 router.post(
   "/",
+  authMiddleware,
   authorize("ADMIN"),
   validate(createInvoiceSchema),
   invoiceController.createInvoice,
 );
+
 router.put(
   "/:id",
+  authMiddleware,
   authorize("ADMIN"),
   validate(updateInvoiceSchema),
   invoiceController.updateInvoice,
 );
-router.delete("/:id", authorize("ADMIN"), invoiceController.deleteInvoice);
+
 router.patch(
   "/:id/status",
+  authMiddleware,
   authorize("ADMIN"),
   validate(updateInvoiceStatusSchema),
   invoiceController.updateInvoiceStatus,
 );
+
+router.delete("/:id", authMiddleware, authorize("ADMIN"), invoiceController.deleteInvoice);
 
 export { router as invoiceRouter };

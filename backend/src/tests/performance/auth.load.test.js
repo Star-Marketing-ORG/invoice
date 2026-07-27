@@ -7,10 +7,12 @@ export const options = {
 };
 
 export default function () {
-  const url = 'http://localhost:4000/api/v1/auth/login';
+  const baseUrl = __ENV.BASE_URL || 'http://localhost:4000';
+  const url = `${baseUrl}/api/v1/auth/login`;
+  
   const payload = JSON.stringify({
-    email: 'ritesh@gmail.com',
-    password: '12345678',
+    email: __ENV.TEST_USER_EMAIL || 'ritesh@gmail.com',
+    password: __ENV.TEST_USER_PASSWORD || '12345678',
   });
 
   const params = {
