@@ -58,7 +58,7 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npx prisma generate
-      - run: npx vitest run --sequence.sequencer --testTimeout=30000 --retry=2
+      - run: npx vitest run --testTimeout=30000 --retry=2
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
