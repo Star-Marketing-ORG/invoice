@@ -1,6 +1,4 @@
-// src/pages/Customers.tsx
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { TbPlus, TbMail, TbPhone } from "react-icons/tb";
 import { formatDate } from "../../libs/utils";
 import { ActiveBadge } from "../../components/ui/ActiveBadge";
@@ -12,7 +10,6 @@ import {
 } from "../../features/hooks/useCustomers";
 import { Table } from "../../components/ui/Table";
 import { Button } from "../../components/ui/ButtonProps";
-import { QuickCustomerForm } from "../../components/layout/QuickCustomerFormProps";
 import { PopupBottomRight } from "../../components/layout/PopupBottomRight";
 import { NewCustomerForm } from "../../components/layout/NewCustomerForm";
 

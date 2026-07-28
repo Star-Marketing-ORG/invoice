@@ -10,7 +10,6 @@ import {
   TbLoader,
 } from "react-icons/tb";
 import { usePayment, useUpdatePayment } from "../../features/hooks/usePayments";
-import { formatCurrency } from "../../utils/moneyCalc";
 import { FormLayout } from "../../components/ui/FormLayout";
 import { FormSection } from "../../components/ui/FormSection";
 import { FormField } from "../../components/ui/FormField";

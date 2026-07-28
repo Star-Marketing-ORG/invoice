@@ -29,10 +29,8 @@ const navItems = [
 ];
 
 export function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-
-  const expanded = isHovered || !isCollapsed;
+  const expanded = isHovered;
 
   return (
     <motion.aside

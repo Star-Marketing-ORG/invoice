@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Chart from "react-apexcharts";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { MdPieChart } from "react-icons/md";
 
 const donutColors = ["#059669", "#2563EB", "#DC2626", "#94A3B8", "#CBD5E1"];

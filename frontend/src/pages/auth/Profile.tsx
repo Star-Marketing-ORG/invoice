@@ -3,7 +3,6 @@ import {
   TbUser,
   TbMail,
   TbShield,
-  TbCamera,
   TbEdit,
   TbLoader,
   TbLock,
@@ -59,10 +58,14 @@ export default function Profile() {
       { id: user?.id!, data: { password: passwordData.newPassword } },
       {
         onSuccess: () => {
-          setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+          setPasswordData({
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          });
           setIsChangingPassword(false);
         },
-      }
+      },
     );
   };
 
@@ -70,9 +73,6 @@ export default function Profile() {
     setFormData({ name: user?.name || "", email: user?.email || "" });
     setIsEditing(false);
   };
-
-  const getInitials = (name: string) =>
-    name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   if (!user) {
     return (
@@ -88,8 +88,27 @@ export default function Profile() {
         title="Profile"
         subtitle="Manage your account information"
         icon={TbUser}
-        onSubmit={isEditing ? handleSave : isChangingPassword ? handlePasswordChange : (e) => e.preventDefault()}
-        onCancel={isEditing ? handleCancel : isChangingPassword ? () => { setIsChangingPassword(false); setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" }); } : undefined}
+        onSubmit={
+          isEditing
+            ? handleSave
+            : isChangingPassword
+              ? handlePasswordChange
+              : (e) => e.preventDefault()
+        }
+        onCancel={
+          isEditing
+            ? handleCancel
+            : isChangingPassword
+              ? () => {
+                  setIsChangingPassword(false);
+                  setPasswordData({
+                    currentPassword: "",
+                    newPassword: "",
+                    confirmPassword: "",
+                  });
+                }
+              : undefined
+        }
         isPending={isPending}
         submitLabel={isChangingPassword ? "Update Password" : "Save Changes"}
         cancelLabel="Cancel"
@@ -117,11 +136,19 @@ export default function Profile() {
           <FormSection
             icon={TbUser}
             title="Account Information"
-            subtitle={isEditing ? "Edit your details below" : "Your personal details"}
+            subtitle={
+              isEditing ? "Edit your details below" : "Your personal details"
+            }
             variant={isEditing ? "brand" : "muted"}
             action={
               !isEditing ? (
-                <Button variant="secondary" size="sm" icon={TbEdit} onClick={() => setIsEditing(true)} type="button">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={TbEdit}
+                  onClick={() => setIsEditing(true)}
+                  type="button"
+                >
                   Edit
                 </Button>
               ) : undefined
@@ -133,7 +160,9 @@ export default function Profile() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, name: e.target.value }))
+                    }
                     placeholder="Enter your name"
                     className="w-full pl-11 pr-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
                   />
@@ -143,7 +172,12 @@ export default function Profile() {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
                     placeholder="Enter your email"
                     className="w-full pl-11 pr-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
                   />
@@ -157,7 +191,9 @@ export default function Profile() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-text-muted">Full Name</p>
-                    <p className="text-sm font-semibold text-text-primary">{formData.name}</p>
+                    <p className="text-sm font-semibold text-text-primary">
+                      {formData.name}
+                    </p>
                   </div>
                 </div>
 
@@ -167,7 +203,9 @@ export default function Profile() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-text-muted">Email Address</p>
-                    <p className="text-sm font-semibold text-text-primary">{formData.email}</p>
+                    <p className="text-sm font-semibold text-text-primary">
+                      {formData.email}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -177,19 +215,36 @@ export default function Profile() {
 
         {/* Change Password */}
         {isChangingPassword && (
-          <FormSection icon={TbLock} title="Change Password" subtitle="Enter your current and new password">
+          <FormSection
+            icon={TbLock}
+            title="Change Password"
+            subtitle="Enter your current and new password"
+          >
             <div className="space-y-4">
               <FormField label="Current Password" icon={TbLock} required>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        currentPassword: e.target.value,
+                      }))
+                    }
                     placeholder="Enter current password"
                     className="w-full pl-11 pr-12 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">
-                    {showPassword ? <TbEyeOff size={16} /> : <TbEye size={16} />}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                  >
+                    {showPassword ? (
+                      <TbEyeOff size={16} />
+                    ) : (
+                      <TbEye size={16} />
+                    )}
                   </button>
                 </div>
               </FormField>
@@ -199,7 +254,12 @@ export default function Profile() {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData((prev) => ({ ...prev, newPassword: e.target.value }))}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        newPassword: e.target.value,
+                      }))
+                    }
                     placeholder="Enter new password"
                     className="w-full pl-11 pr-12 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
                   />
@@ -211,12 +271,25 @@ export default function Profile() {
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        confirmPassword: e.target.value,
+                      }))
+                    }
                     placeholder="Confirm new password"
                     className="w-full pl-11 pr-12 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
                   />
-                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">
-                    {showConfirmPassword ? <TbEyeOff size={16} /> : <TbEye size={16} />}
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                  >
+                    {showConfirmPassword ? (
+                      <TbEyeOff size={16} />
+                    ) : (
+                      <TbEye size={16} />
+                    )}
                   </button>
                 </div>
               </FormField>
@@ -227,7 +300,11 @@ export default function Profile() {
         {/* Role & Actions */}
         {!isEditing && !isChangingPassword && (
           <>
-            <FormSection icon={TbShield} title="Account Details" variant="muted">
+            <FormSection
+              icon={TbShield}
+              title="Account Details"
+              variant="muted"
+            >
               <div className="space-y-3">
                 <div className="flex items-center gap-4 p-4 bg-surface-hover rounded-2xl">
                   <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
@@ -235,7 +312,9 @@ export default function Profile() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-text-muted">Role</p>
-                    <p className="text-sm font-semibold text-text-primary">{user.role || "Admin"}</p>
+                    <p className="text-sm font-semibold text-text-primary">
+                      {user.role || "Admin"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -243,7 +322,12 @@ export default function Profile() {
 
             {/* Change Password Button */}
             <div className="flex justify-center">
-              <Button variant="secondary" icon={TbLock} onClick={() => setIsChangingPassword(true)} type="button">
+              <Button
+                variant="secondary"
+                icon={TbLock}
+                onClick={() => setIsChangingPassword(true)}
+                type="button"
+              >
                 Change Password
               </Button>
             </div>

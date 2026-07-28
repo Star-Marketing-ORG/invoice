@@ -52,7 +52,6 @@ interface NewPaymentFormProps {
 export function NewPaymentForm({
   onSuccess,
   onCancel,
-  invoiceId,
 }: NewPaymentFormProps) {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});

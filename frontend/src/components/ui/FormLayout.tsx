@@ -28,8 +28,6 @@ export function FormLayout({
   isPending = false,
   submitLabel = "Save",
   cancelLabel = "Cancel",
-  extraAction,
-  extraLabel,
 }: FormLayoutProps) {
   const navigate = useNavigate();
   return (

@@ -6,7 +6,6 @@ import {
   TbPhone,
   TbMapPin,
   TbBuilding,
-  TbCheck,
   TbLoader,
   TbFileText,
 } from "react-icons/tb";
@@ -102,7 +101,6 @@ export default function UpdateCustomer() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: customer, isLoading } = useCustomer(id!);
   const { mutate: updateCustomer, isPending } = useUpdateCustomer();

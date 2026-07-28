@@ -26,7 +26,11 @@ interface LineItemsSectionProps {
   isSearchingServices?: boolean;
   onServiceSearchChange: (itemId: string, value: string) => void;
   onServiceSelect: (itemId: string, serviceId: string) => void;
-  onUpdateItem: (id: string, field: keyof LineItem, value: string | number) => void;
+  onUpdateItem: (
+    id: string,
+    field: keyof LineItem,
+    value: string | number,
+  ) => void;
   onAddItem: () => void;
   onRemoveItem: (id: string) => void;
   subtitle?: string;
@@ -44,9 +48,6 @@ export function LineItemsSection({
   onRemoveItem,
   subtitle,
 }: LineItemsSectionProps) {
-  // Check if any item is actively searching
-  const isAnySearching = Object.values(serviceSearch).some((val) => val.length > 0);
-
   return (
     <FormSection
       icon={TbPlus}
@@ -62,7 +63,8 @@ export function LineItemsSection({
         {items.map((item, index) => {
           const isThisSearching = !!serviceSearch[item.id];
           const showResults = isThisSearching && services.length > 0;
-          const showNoResults = isThisSearching && !isSearchingServices && services.length === 0;
+          const showNoResults =
+            isThisSearching && !isSearchingServices && services.length === 0;
 
           return (
             <div
@@ -96,11 +98,13 @@ export function LineItemsSection({
                     <div className="flex items-center justify-between px-4 py-3 bg-white rounded-2xl border-2 border-transparent">
                       <div>
                         <p className="text-sm font-medium text-text-primary">
-                          {services.find((s) => s.id === item.serviceId)?.name || "Loading..."}
+                          {services.find((s) => s.id === item.serviceId)
+                            ?.name || "Loading..."}
                         </p>
                         <p className="text-xs text-text-muted">
                           {formatCurrency(
-                            services.find((s) => s.id === item.serviceId)?.price || 0,
+                            services.find((s) => s.id === item.serviceId)
+                              ?.price || 0,
                           )}
                         </p>
                       </div>
@@ -121,7 +125,9 @@ export function LineItemsSection({
                       <input
                         type="text"
                         value={serviceSearch[item.id] || ""}
-                        onChange={(e) => onServiceSearchChange(item.id, e.target.value)}
+                        onChange={(e) =>
+                          onServiceSearchChange(item.id, e.target.value)
+                        }
                         placeholder="Search services..."
                         className="w-full pl-11 pr-10 py-3 bg-white rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
                       />
@@ -129,7 +135,10 @@ export function LineItemsSection({
                       {/* 🔵 Loading Spinner — Right Side (like NewPayment) */}
                       {isSearchingServices && (
                         <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                          <TbLoader size={16} className="text-brand animate-spin" />
+                          <TbLoader
+                            size={16}
+                            className="text-brand animate-spin"
+                          />
                         </div>
                       )}
 
@@ -169,7 +178,9 @@ export function LineItemsSection({
                   <input
                     type="number"
                     value={item.quantity}
-                    onChange={(e) => onUpdateItem(item.id, "quantity", Number(e.target.value))}
+                    onChange={(e) =>
+                      onUpdateItem(item.id, "quantity", Number(e.target.value))
+                    }
                     min="1"
                     className="w-full px-4 py-3 bg-white rounded-2xl text-sm text-center text-text-primary border-2 border-transparent focus:border-brand/30 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
                   />
@@ -180,7 +191,9 @@ export function LineItemsSection({
                   <input
                     type="number"
                     value={item.unitPrice}
-                    onChange={(e) => onUpdateItem(item.id, "unitPrice", Number(e.target.value))}
+                    onChange={(e) =>
+                      onUpdateItem(item.id, "unitPrice", Number(e.target.value))
+                    }
                     min="0"
                     step="0.01"
                     className="w-full px-4 py-3 bg-white rounded-2xl text-sm text-right font-mono text-text-primary border-2 border-transparent focus:border-brand/30 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
@@ -192,7 +205,9 @@ export function LineItemsSection({
                   <input
                     type="number"
                     value={item.taxRate}
-                    onChange={(e) => onUpdateItem(item.id, "taxRate", Number(e.target.value))}
+                    onChange={(e) =>
+                      onUpdateItem(item.id, "taxRate", Number(e.target.value))
+                    }
                     min="0"
                     max="100"
                     className="w-full px-4 py-3 bg-white rounded-2xl text-sm text-center text-text-primary border-2 border-transparent focus:border-brand/30 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
@@ -204,7 +219,9 @@ export function LineItemsSection({
                   <input
                     type="number"
                     value={item.discount}
-                    onChange={(e) => onUpdateItem(item.id, "discount", Number(e.target.value))}
+                    onChange={(e) =>
+                      onUpdateItem(item.id, "discount", Number(e.target.value))
+                    }
                     min="0"
                     max="100"
                     className="w-full px-4 py-3 bg-white rounded-2xl text-sm text-center text-text-primary border-2 border-transparent focus:border-brand/30 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"

@@ -8,9 +8,6 @@ import {
   TbX,
   TbChevronLeft,
   TbChevronRight,
-  TbChevronsLeft,
-  TbChevronsRight,
-  TbDots,
 } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 
@@ -64,7 +61,6 @@ export function Table<T extends { id: string }>({
   columns,
   data,
   isLoading = false,
-  mode = "normal",
   hasPrevious = false,
   hasNext = false,
   currentPage = 0,
