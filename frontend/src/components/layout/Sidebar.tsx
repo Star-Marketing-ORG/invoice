@@ -13,13 +13,12 @@ import { SidebarItem } from "./SidebarItem";
 import { MdCategory } from "react-icons/md";
 
 const navItems = [
-  { icon: TbLayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: TbFileInvoice, label: "Invoices", path: "/invoices", badge: "12" },
+  { icon: TbLayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: TbFileInvoice, label: "Invoices", path: "/invoices" },
   {
     icon: TbFileDescription,
     label: "Quotations",
     path: "/quotations",
-    badge: "5",
   },
   { icon: TbUsers, label: "Customers", path: "/customers" },
   { icon: TbBriefcase, label: "Services", path: "/services" },
@@ -49,7 +48,6 @@ export function Sidebar() {
             icon={item.icon}
             label={item.label}
             path={item.path}
-            badge={item.badge}
             isCollapsed={!expanded}
           />
         ))}

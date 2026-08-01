@@ -29,7 +29,7 @@ export class QuotationService {
     const quotations = await prisma.quotation.findMany({
       where: {
         status: { notIn: ["APPROVED", "REJECTED", "EXPIRED"] },
-        expiryDate: { lt: new Date() },
+        expiryDate: { lt: new Date(new Date().setHours(0, 0, 0, 0)) },
       },
     });
 

@@ -20,6 +20,14 @@ axiosInstance.interceptors.response.use(
 
     const message = error.response?.data?.message || "Something went wrong";
 
+    // Don't show toast for GET requests with auth errors
+    const isGetRequest = error.config?.method === "get";
+    const isAuthError = error.response?.status === 401;
+
+    if (isAuthError && isGetRequest) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status >= 500) {
       toast.error("Server error! Please try again later.");
     } else {

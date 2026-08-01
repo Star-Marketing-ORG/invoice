@@ -53,6 +53,16 @@ class DashboardController {
       data,
     });
   });
+
+  getServiceDemand = asyncHandler(async (_req: Request, res: Response) => {
+    const data = await dashboardService.getServiceDemandStats();
+
+    return apiResponse({
+      res,
+      message: "Service demand fetched successfully",
+      data,
+    });
+  });
 }
 
 export const dashboardController = new DashboardController();

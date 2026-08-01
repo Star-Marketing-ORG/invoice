@@ -8,6 +8,7 @@ import { prisma } from "../../database/client";
 import { Search } from "../../common/utils/search";
 import { Customer } from "@prisma/client";
 import { Filter } from "../../common/utils/filter";
+import { performance } from "node:perf_hooks";
 
 export class CustomerService {
   async generateCustomerCode(): Promise<string> {
@@ -22,12 +23,25 @@ export class CustomerService {
     return code;
   }
 
-  async getAllCustomers(query: { cursor?: string; limit?: string }) {
-    return Pagination.paginate((args) => prisma.customer.findMany(args), {
+ async getAllCustomers(query: { cursor?: string; limit?: string }) {
+  return Pagination.paginate(
+    async (args) => {
+      const start = performance.now();
+
+      const customers = await prisma.customer.findMany(args);
+
+      console.log(
+        `Service -> Prisma -> DB: ${(performance.now() - start).toFixed(2)} ms | Rows: ${customers.length}`
+      );
+
+      return customers;
+    },
+    {
       cursor: query.cursor,
       limit: query.limit ? parseInt(query.limit) : undefined,
-    });
-  }
+    }
+  );
+}
 
   async getCustomerById(id: string) {
     const customer = await customerRepository.findById(id);

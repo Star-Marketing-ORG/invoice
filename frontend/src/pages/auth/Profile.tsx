@@ -16,6 +16,7 @@ import { FormField } from "../../components/ui/FormField";
 import { Button } from "../../components/ui/ButtonProps";
 import { useUpdateUser } from "../../features/hooks/useUser";
 import { toast } from "../../utils/toast";
+import { Skeleton } from "../../components/ui/SkeletonCard";
 
 export default function Profile() {
   const { user } = useAuthStore();
@@ -76,8 +77,16 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <TbLoader size={40} className="text-brand animate-spin" />
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="flex items-center gap-3 mb-2">
+          <Skeleton className="h-10 w-10 rounded-xl" />
+          <div>
+            <Skeleton className="h-6 w-32 mb-1" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+        </div>
+        <Skeleton className="h-[200px] w-full rounded-2xl" />
+        <Skeleton className="h-[100px] w-full rounded-2xl" />
       </div>
     );
   }

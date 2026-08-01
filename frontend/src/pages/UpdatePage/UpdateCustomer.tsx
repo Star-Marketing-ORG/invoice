@@ -18,6 +18,7 @@ import { updateCustomerSchema } from "@invoice/shared";
 import { FormLayout } from "../../components/ui/FormLayout";
 import { FormSection } from "../../components/ui/FormSection";
 import { FormField } from "../../components/ui/FormField";
+import { Skeleton } from "../../components/ui/SkeletonCard";
 
 interface Field {
   name: keyof CreateCustomerDto | "isActive";
@@ -209,19 +210,21 @@ export default function UpdateCustomer() {
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="text-center">
-          <TbLoader
-            size={40}
-            className="text-brand animate-spin mx-auto mb-4"
-          />
-          <p className="text-text-secondary">Loading customer details...</p>
+if (isLoading) {
+  return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div className="flex items-center gap-3 mb-2">
+        <Skeleton className="h-10 w-10 rounded-xl" />
+        <div>
+          <Skeleton className="h-6 w-48 mb-1" />
+          <Skeleton className="h-4 w-64" />
         </div>
       </div>
-    );
-  }
+      <Skeleton className="h-[250px] w-full rounded-2xl" />
+      <Skeleton className="h-[200px] w-full rounded-2xl" />
+    </div>
+  );
+}
 
   return (
     <div className="max-w-3xl mx-auto">

@@ -8,15 +8,27 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
 
-  PORT: z.coerce.number().default(5000), 
+  PORT: z.coerce.number().default(5000),
 
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
 
   JWT_EXPIRES_IN: z.string().default("7d"),
 
-  JWT_SECRET: z 
+  JWT_SECRET: z
     .string()
     .min(32, "JWT_SECRET must be at least 32 characters long"),
+
+  // SMTP Email Configuration
+  SMTP_HOST: z.string().default("smtp.gmail.com"),
+  SMTP_PORT: z.coerce.number().default(587),
+  SMTP_USER: z.string().email("SMTP_USER must be a valid email"),
+  SMTP_PASS: z.string().min(1, "SMTP_PASS is required"),
+  SMTP_FROM: z.string().default("Invoice Ready <noreply@invoiceready.com>"),
+
+  WHATSAPP_PHONE_NUMBER_ID: z
+    .string()
+    .min(1, "WHATSAPP_PHONE_NUMBER_ID is required"),
+  WHATSAPP_ACCESS_TOKEN: z.string().min(1, "WHATSAPP_ACCESS_TOKEN is required"),
 });
 
 const parsed = envSchema.safeParse(process.env);

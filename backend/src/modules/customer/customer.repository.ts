@@ -1,11 +1,24 @@
+import { performance } from "perf_hooks";
 import { prisma } from "../../database/client";
 
 export class CustomerRepository {
+
   async findMany() {
-    return prisma.customer.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-  }
+      console.log("🔥 CustomerRepository.findMany called");
+  const start = performance.now();
+
+  const customers = await prisma.customer.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+
+  const end = performance.now();
+
+  console.log(
+    `Repository -> DB: ${(end - start).toFixed(2)} ms`
+  );
+
+  return customers;
+}
 
   async findById(id: string) {
     return prisma.customer.findUnique({
@@ -87,18 +100,18 @@ export class CustomerRepository {
   }
 
   async filter(args: any) {
-  return prisma.customer.findMany({
-    ...args,
-    include: {
-      _count: {
-        select: {
-          quotations: true,
-          invoices: true,
+    return prisma.customer.findMany({
+      ...args,
+      include: {
+        _count: {
+          select: {
+            quotations: true,
+            invoices: true,
+          },
         },
       },
-    },
-  });
-}
+    });
+  }
 }
 
 export const customerRepository = new CustomerRepository();

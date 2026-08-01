@@ -1,6 +1,12 @@
 import Chart from "react-apexcharts";
 import { motion } from "framer-motion";
-import { TbChartBar, TbArrowUpRight, TbArrowDownRight, TbMinus } from "react-icons/tb";
+import {
+  TbChartBar,
+  TbArrowUpRight,
+  TbArrowDownRight,
+  TbMinus,
+} from "react-icons/tb";
+import { Skeleton } from "../ui/SkeletonCard";
 
 interface MonthlyData {
   month: string;
@@ -19,7 +25,22 @@ interface RevenueProps {
 export default function Revenue({ data, isLoading }: RevenueProps) {
   if (isLoading || !data) {
     return (
-      <div className="bg-white rounded-3xl border border-border p-6 animate-pulse h-[400px]" />
+      <div className="bg-white rounded-3xl border border-border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-9 h-9 rounded-xl" />
+            <div>
+              <Skeleton className="h-4 w-32 mb-1" />
+              <Skeleton className="h-3 w-40" />
+            </div>
+          </div>
+          <div className="text-right">
+            <Skeleton className="h-6 w-28 mb-1" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+        </div>
+        <Skeleton className="h-[280px] w-full rounded-xl" />
+      </div>
     );
   }
 
@@ -27,8 +48,16 @@ export default function Revenue({ data, isLoading }: RevenueProps) {
 
   const isPositive = subtitle.startsWith("+");
   const isNegative = subtitle.startsWith("-");
-  const TrendIcon = isPositive ? TbArrowUpRight : isNegative ? TbArrowDownRight : TbMinus;
-  const trendColor = isPositive ? "text-emerald-600" : isNegative ? "text-rose-600" : "text-text-muted";
+  const TrendIcon = isPositive
+    ? TbArrowUpRight
+    : isNegative
+      ? TbArrowDownRight
+      : TbMinus;
+  const trendColor = isPositive
+    ? "text-emerald-600"
+    : isNegative
+      ? "text-rose-600"
+      : "text-text-muted";
 
   const chartOptions: ApexCharts.ApexOptions = {
     chart: {
@@ -69,7 +98,9 @@ export default function Revenue({ data, isLoading }: RevenueProps) {
     },
     xaxis: {
       categories: months.map((d) => d.month),
-      labels: { style: { fontSize: "12px", fontWeight: 500, colors: "#94A3B8" } },
+      labels: {
+        style: { fontSize: "12px", fontWeight: 500, colors: "#94A3B8" },
+      },
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
@@ -120,8 +151,12 @@ export default function Revenue({ data, isLoading }: RevenueProps) {
               <TbChartBar size={18} className="text-blue-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-text-primary text-sm">Monthly Revenue</h3>
-              <p className="text-xs text-text-muted">Revenue overview for 2026</p>
+              <h3 className="font-semibold text-text-primary text-sm">
+                Monthly Revenue
+              </h3>
+              <p className="text-xs text-text-muted">
+                Revenue overview for 2026
+              </p>
             </div>
           </div>
 
@@ -131,13 +166,20 @@ export default function Revenue({ data, isLoading }: RevenueProps) {
             </p>
             <div className="flex items-center gap-1 justify-end mt-0.5">
               <TrendIcon size={12} className={trendColor} />
-              <p className={`text-[11px] font-medium ${trendColor}`}>{subtitle}</p>
+              <p className={`text-[11px] font-medium ${trendColor}`}>
+                {subtitle}
+              </p>
             </div>
           </div>
         </div>
 
         <div className="-mx-2">
-          <Chart options={chartOptions} series={chartSeries} type="bar" height={280} />
+          <Chart
+            options={chartOptions}
+            series={chartSeries}
+            type="bar"
+            height={280}
+          />
         </div>
       </div>
     </motion.div>

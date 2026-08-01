@@ -3,10 +3,11 @@ import app from "./app";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { prisma, connectDatabase } from "./database/client";
+import { notificationScheduler } from "./modules/notification/notification.scheduler";
 
 const server = http.createServer(app);
 
-// Connect to database befo re starting server
+// Connect to database before starting server
 const startServer = async () => {
   try {
     // Test database connection
@@ -20,6 +21,9 @@ const startServer = async () => {
     // Optional: Run a simple query to verify connection
     await prisma.$queryRaw`SELECT 1`;
     logger.info("Database connection verified with test query");
+
+    // Start notification scheduler
+    notificationScheduler.startScheduler(); // Add this
 
     // Start server
     server.listen(env.PORT, () => {

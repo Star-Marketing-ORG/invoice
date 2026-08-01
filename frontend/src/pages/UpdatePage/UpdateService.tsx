@@ -15,6 +15,7 @@ import { updateServiceSchema } from "@invoice/shared";
 import { FormLayout } from "../../components/ui/FormLayout";
 import { FormSection } from "../../components/ui/FormSection";
 import { FormField } from "../../components/ui/FormField";
+import { Skeleton } from "../../components/ui/SkeletonCard";
 
 interface Field {
   name: keyof UpdateServiceDto;
@@ -172,7 +173,11 @@ export default function UpdateService() {
         label={field.label}
         required={field.required}
         error={errors[field.name]}
-        icon={field.type !== "textarea" && field.type !== "select" ? Icon : undefined}
+        icon={
+          field.type !== "textarea" && field.type !== "select"
+            ? Icon
+            : undefined
+        }
       >
         {field.type === "textarea" ? (
           <textarea
@@ -181,7 +186,9 @@ export default function UpdateService() {
             placeholder={field.placeholder}
             rows={field.rows || 3}
             className={`w-full px-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:bg-white transition-all resize-none ${
-              hasError ? "border-danger/50 focus:border-danger focus:ring-danger/20" : "border-transparent focus:border-brand/30"
+              hasError
+                ? "border-danger/50 focus:border-danger focus:ring-danger/20"
+                : "border-transparent focus:border-brand/30"
             }`}
           />
         ) : field.type === "select" ? (
@@ -189,12 +196,16 @@ export default function UpdateService() {
             value={formData[field.name] as string}
             onChange={(e) => handleChange(field.name, e.target.value)}
             className={`w-full px-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary border-2 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:bg-white transition-all appearance-none ${
-              hasError ? "border-danger/50 focus:border-danger focus:ring-danger/20" : "border-transparent focus:border-brand/30"
+              hasError
+                ? "border-danger/50 focus:border-danger focus:ring-danger/20"
+                : "border-transparent focus:border-brand/30"
             } ${!formData[field.name] ? "text-text-muted" : ""}`}
           >
             <option value="">{field.placeholder}</option>
             {categories.map((cat: any) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
             ))}
           </select>
         ) : (
@@ -207,7 +218,9 @@ export default function UpdateService() {
             min={field.min}
             max={field.max}
             className={`w-full pl-11 pr-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:bg-white transition-all ${
-              hasError ? "border-danger/50 focus:border-danger focus:ring-danger/20" : "border-transparent focus:border-brand/30"
+              hasError
+                ? "border-danger/50 focus:border-danger focus:ring-danger/20"
+                : "border-transparent focus:border-brand/30"
             }`}
           />
         )}
@@ -217,11 +230,15 @@ export default function UpdateService() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="text-center">
-          <TbLoader size={40} className="text-brand animate-spin mx-auto mb-4" />
-          <p className="text-text-secondary">Loading service details...</p>
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="flex items-center gap-3 mb-2">
+          <Skeleton className="h-10 w-10 rounded-xl" />
+          <div>
+            <Skeleton className="h-6 w-48 mb-1" />
+            <Skeleton className="h-4 w-64" />
+          </div>
         </div>
+        <Skeleton className="h-[350px] w-full rounded-2xl" />
       </div>
     );
   }

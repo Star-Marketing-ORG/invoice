@@ -13,7 +13,6 @@ export function SidebarItem({
   icon: Icon,
   label,
   path,
-  badge,
   isCollapsed,
 }: SidebarItemProps) {
   return (
@@ -32,11 +31,6 @@ export function SidebarItem({
       {!isCollapsed && (
         <>
           <span className="text-sm font-bold flex-1">{label}</span>
-          {badge && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-white/20">
-              {badge}
-            </span>
-          )}
         </>
       )}
     </NavLink>

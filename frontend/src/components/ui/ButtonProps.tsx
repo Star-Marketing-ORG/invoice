@@ -58,7 +58,7 @@ export function Button({
       ) : Icon ? (
         <Icon
           size={size === "sm" ? 14 : 18}
-          className="shrink-0 transition-transform duration-500 group-hover:rotate-180"
+          className="shrink-0 transition-transform duration-500"
         />
       ) : null}
       {children}

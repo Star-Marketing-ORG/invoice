@@ -12,6 +12,7 @@ import { Filter } from "../../common/utils/filter";
 import { InvoiceStatusUtil } from "../../common/utils/invoice-status.util";
 import { PaymentSummaryUtil } from "../../common/utils/payment-summary.util";
 import { quotationRepository } from "../quotation/quotation.repository";
+import { pdfService } from "../pdf/pdf.service";
 
 type InvoiceWithCustomer = Prisma.InvoiceGetPayload<{
   include: { customer: true };
@@ -49,6 +50,7 @@ export class InvoiceService {
             customer: {
               select: {
                 name: true,
+                phone: true,
               },
             },
           },
@@ -71,7 +73,7 @@ export class InvoiceService {
     const invoices = await prisma.invoice.findMany({
       where: {
         status: { notIn: ["PAID", "CANCELLED", "OVERDUE"] },
-        dueDate: { lt: new Date() },
+        dueDate: { lt: new Date(new Date().setHours(0, 0, 0, 0)) },
       },
       include: { payments: true },
     });
@@ -292,6 +294,58 @@ export class InvoiceService {
         ...this.addPaymentSummary(invoice),
       })),
     };
+  }
+
+  async sendPdfToClient(invoiceId: string) {
+    const invoice = await this.getInvoiceById(invoiceId);
+
+    if (!invoice) {
+      throw new AppError({
+        statusCode: HTTP_STATUS.NOT_FOUND,
+        message: "Invoice not found",
+      });
+    }
+
+    if (!invoice.customer?.email) {
+      throw new AppError({
+        statusCode: HTTP_STATUS.BAD_REQUEST,
+        message: "Customer email not found",
+      });
+    }
+
+    const pdfData = {
+      invoiceNumber: invoice.invoiceNumber,
+      customerName: invoice.customer.name,
+      customerEmail: invoice.customer.email,
+      customerPhone: invoice.customer.phone || "",
+      customerAddress: invoice.customer.address || "",
+      issueDate: new Date(invoice.issueDate).toLocaleDateString("en-IN"),
+      dueDate: invoice.dueDate
+        ? new Date(invoice.dueDate).toLocaleDateString("en-IN")
+        : "N/A",
+      status: invoice.status,
+      items: invoice.items.map((item: any) => ({
+        serviceName: item.service?.name || "Unknown Service",
+        description: item.description || "",
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice),
+        taxRate: Number(item.taxRate),
+        discount: Number(item.discount),
+        total: Number(item.total),
+      })),
+      subtotal: Number(invoice.subtotal),
+      discount: Number(invoice.discount),
+      tax: Number(invoice.tax),
+      total: Number(invoice.total),
+      totalPaid: (invoice as any).totalPaid || 0,
+      remainingBalance:
+        (invoice as any).remainingBalance || Number(invoice.total),
+      notes: invoice.notes || "",
+      termsConditions: invoice.termsConditions || "",
+    };
+
+    const result = await pdfService.sendPdfToClient(pdfData, invoiceId);
+    return result;
   }
 }
 

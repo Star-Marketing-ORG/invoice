@@ -246,6 +246,10 @@ class DashboardService {
       count: item.count,
     }));
   }
+
+  async getServiceDemandStats() {
+    return invoiceRepository.getServiceDemandStats();
+  }
 }
 
 export const dashboardService = new DashboardService();

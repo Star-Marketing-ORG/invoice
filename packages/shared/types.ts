@@ -368,3 +368,38 @@ export interface UpdateUserDto {
   name?: string;
   email?: string;
 }
+
+
+
+export interface Notification {
+  id: string;
+  type: string;
+  entity: string;
+  message: string;
+  isRead: boolean;
+  invoiceId: string | null;
+  quotationId: string | null;
+  createdAt: string;
+  readAt: string | null;
+  invoice: {
+    invoiceNumber: string;
+    total: string;
+    dueDate: string;
+    status: string;
+    customer: {
+      name: string;
+      email: string;
+    };
+  } | null;
+  quotation: {
+    quotationNumber: string;
+    total: string;
+    expiryDate: string;
+    status: string;
+    customer: {
+      name: string;
+      email: string;
+    };
+  } | null;
+}
+

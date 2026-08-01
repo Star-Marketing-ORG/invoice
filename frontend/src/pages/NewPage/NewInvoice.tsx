@@ -31,7 +31,6 @@ import { QuotationSelector } from "../../components/layout/QuotationSelector";
 import { CustomerSelector } from "../../components/layout/CustomerSelector";
 import { LineItemsSection } from "../../components/layout/LineItemsSection";
 
-
 // Types
 interface Service {
   id: string;
@@ -83,7 +82,8 @@ interface FormData {
 function extractListData<T>(response: any): T[] {
   if (!response?.data) return [];
   if (Array.isArray(response.data)) return response.data;
-  if (response.data.data && Array.isArray(response.data.data)) return response.data.data;
+  if (response.data.data && Array.isArray(response.data.data))
+    return response.data.data;
   return [];
 }
 
@@ -117,48 +117,70 @@ export default function NewInvoice() {
   const [mode, setMode] = useState<InvoiceMode>("new");
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [serviceSearch, setServiceSearch] = useState<Record<string, string>>({});
-  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
+  const [serviceSearch, setServiceSearch] = useState<Record<string, string>>(
+    {},
+  );
+  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(
+    null,
+  );
 
   const { mutate: createInvoice, isPending } = useCreateInvoice();
 
+  // Auto-fill terms and notes from settings
+  useEffect(() => {
+    if (mode === "new" && !selectedQuotation) {
+      const savedTerms = localStorage.getItem("invoiceTerms");
+      const savedNotes = localStorage.getItem("invoiceNotes");
+
+      setFormData((prev) => ({
+        ...prev,
+        termsConditions: savedTerms || prev.termsConditions,
+        notes: savedNotes || prev.notes,
+      }));
+    }
+  }, [mode, selectedQuotation]);
+
   // Fetch services
   const { data: servicesData } = useServices({ cursor: "" });
-  const { data: searchedServices } = useSearchServices({ q: serviceSearch.global || "" });
-  const services = extractListData<Service>(serviceSearch.global ? searchedServices : servicesData);
+  const { data: searchedServices } = useSearchServices({
+    q: serviceSearch.global || "",
+  });
+  const services = extractListData<Service>(
+    serviceSearch.global ? searchedServices : servicesData,
+  );
 
   // Auto-fill form when quotation is selected
-useEffect(() => {
-  if (selectedQuotation) {
-    setFormData({
-      customerId: selectedQuotation.customerId,
-      quotationId: selectedQuotation.id,
-      issueDate: getTodayDate(),
-      dueDate: selectedQuotation.expiryDate?.split('T')[0] || '',
-      discount: selectedQuotation.discount || 0,
-      tax: selectedQuotation.tax || 0,
-      notes: selectedQuotation.notes || '',
-      termsConditions: selectedQuotation.termsConditions || '',
-      
-      // ⬇️ THIS IS WHERE YOU FIX IT ⬇️
-      items: selectedQuotation.items?.map(item => ({
-        id: crypto.randomUUID(),
-        serviceId: item.serviceId,
-        description: item.description || '',
-        quantity: Number(item.quantity),        // Add Number()
-        unitPrice: Number(item.unitPrice),      // Add Number()
-        taxRate: Number(item.taxRate) || 0,      // Add Number()
-        discount: Number(item.discount) || 0,    // Add Number()
-        total: calcItemTotal({
-          quantity: Number(item.quantity),
-          unitPrice: Number(item.unitPrice),
-          taxRate: Number(item.taxRate) || 0,
-          discount: Number(item.discount) || 0,
-        }),
-      })) || [emptyItem()],
-    });
-  }
-}, [selectedQuotation]);
+  useEffect(() => {
+    if (selectedQuotation) {
+      setFormData({
+        customerId: selectedQuotation.customerId,
+        quotationId: selectedQuotation.id,
+        issueDate: getTodayDate(),
+        dueDate: selectedQuotation.expiryDate?.split("T")[0] || "",
+        discount: selectedQuotation.discount || 0,
+        tax: selectedQuotation.tax || 0,
+        notes: selectedQuotation.notes || "",
+        termsConditions: selectedQuotation.termsConditions || "",
+
+        // ⬇️ THIS IS WHERE YOU FIX IT ⬇️
+        items: selectedQuotation.items?.map((item) => ({
+          id: crypto.randomUUID(),
+          serviceId: item.serviceId,
+          description: item.description || "",
+          quantity: Number(item.quantity), // Add Number()
+          unitPrice: Number(item.unitPrice), // Add Number()
+          taxRate: Number(item.taxRate) || 0, // Add Number()
+          discount: Number(item.discount) || 0, // Add Number()
+          total: calcItemTotal({
+            quantity: Number(item.quantity),
+            unitPrice: Number(item.unitPrice),
+            taxRate: Number(item.taxRate) || 0,
+            discount: Number(item.discount) || 0,
+          }),
+        })) || [emptyItem()],
+      });
+    }
+  }, [selectedQuotation]);
 
   const totals = calcTotals(formData.items);
 
@@ -171,24 +193,33 @@ useEffect(() => {
   };
 
   // ─── Quotation ────────────────────────────────
-  const selectQuotation = (quotation: Quotation) => setSelectedQuotation(quotation);
+  const selectQuotation = (quotation: Quotation) =>
+    setSelectedQuotation(quotation);
   const clearQuotation = () => {
     setSelectedQuotation(null);
     setFormData(initialFormData());
   };
 
   // ─── Items ────────────────────────────────────
-  const addItem = () => setFormData((prev) => ({ ...prev, items: [...prev.items, emptyItem()] }));
+  const addItem = () =>
+    setFormData((prev) => ({ ...prev, items: [...prev.items, emptyItem()] }));
 
   const removeItem = (id: string) => {
     if (formData.items.length === 1) {
       toast.error("At least one service item is required");
       return;
     }
-    setFormData((prev) => ({ ...prev, items: prev.items.filter((item) => item.id !== id) }));
+    setFormData((prev) => ({
+      ...prev,
+      items: prev.items.filter((item) => item.id !== id),
+    }));
   };
 
-  const updateItem = (id: string, field: keyof LineItem, value: string | number) => {
+  const updateItem = (
+    id: string,
+    field: keyof LineItem,
+    value: string | number,
+  ) => {
     setFormData((prev) => ({
       ...prev,
       items: prev.items.map((item) => {
@@ -220,25 +251,43 @@ useEffect(() => {
   // ─── Fields ───────────────────────────────────
   const updateField = (field: keyof FormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => { const { [field]: _, ...rest } = prev; return rest; });
+    if (errors[field])
+      setErrors((prev) => {
+        const { [field]: _, ...rest } = prev;
+        return rest;
+      });
   };
 
   const selectCustomer = (customerId: string) => {
     setFormData((prev) => ({ ...prev, customerId }));
-    if (errors.customerId) setErrors((prev) => { const { customerId: _, ...rest } = prev; return rest; });
+    if (errors.customerId)
+      setErrors((prev) => {
+        const { customerId: _, ...rest } = prev;
+        return rest;
+      });
   };
 
-  const clearCustomer = () => setFormData((prev) => ({ ...prev, customerId: "" }));
+  const clearCustomer = () =>
+    setFormData((prev) => ({ ...prev, customerId: "" }));
 
   // ─── Validate & Submit ────────────────────────
   const validate = (): boolean => {
     const hasValidService = formData.items.some((item) => item.serviceId);
-    if (!hasValidService) { toast.error("Please select at least one service"); return false; }
+    if (!hasValidService) {
+      toast.error("Please select at least one service");
+      return false;
+    }
 
     const itemsWithService = formData.items.filter((item) => item.serviceId);
     for (const item of itemsWithService) {
-      if (!item.quantity || item.quantity < 1) { toast.error("All items must have a quantity of at least 1"); return false; }
-      if (!item.unitPrice || item.unitPrice <= 0) { toast.error("All items must have a price greater than 0"); return false; }
+      if (!item.quantity || item.quantity < 1) {
+        toast.error("All items must have a quantity of at least 1");
+        return false;
+      }
+      if (!item.unitPrice || item.unitPrice <= 0) {
+        toast.error("All items must have a price greater than 0");
+        return false;
+      }
     }
 
     const dataToValidate = {
@@ -250,26 +299,29 @@ useEffect(() => {
       tax: Number(formData.tax) || 0,
       notes: formData.notes || undefined,
       termsConditions: formData.termsConditions || undefined,
-      items: formData.items.filter((item) => item.serviceId).map((item) => ({
-        serviceId: item.serviceId,
-        description: item.description || undefined,
-        quantity: Number(item.quantity),
-        unitPrice: Number(item.unitPrice),
-        taxRate: Number(item.taxRate) || undefined,
-        discount: Number(item.discount) || undefined,
-      })),
+      items: formData.items
+        .filter((item) => item.serviceId)
+        .map((item) => ({
+          serviceId: item.serviceId,
+          description: item.description || undefined,
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+          taxRate: Number(item.taxRate) || undefined,
+          discount: Number(item.discount) || undefined,
+        })),
     };
 
-      // 🔍 LOG BEFORE ZOD
-  console.log("=== DATA TO VALIDATE ===");
-  console.log(JSON.stringify(dataToValidate, null, 2));
-
+    // 🔍 LOG BEFORE ZOD
+    console.log("=== DATA TO VALIDATE ===");
+    console.log(JSON.stringify(dataToValidate, null, 2));
 
     const result = createInvoiceSchema.shape.body.safeParse(dataToValidate);
-    
+
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach((err) => { fieldErrors[err.path.join(".")] = err.message; });
+      result.error.errors.forEach((err) => {
+        fieldErrors[err.path.join(".")] = err.message;
+      });
       setErrors(fieldErrors);
       return false;
     }
@@ -291,17 +343,21 @@ useEffect(() => {
       tax: Number(formData.tax) || 0,
       notes: formData.notes || undefined,
       termsConditions: formData.termsConditions || undefined,
-      items: formData.items.filter((item) => item.serviceId).map((item) => ({
-        serviceId: item.serviceId,
-        description: item.description || undefined,
-        quantity: Number(item.quantity),
-        unitPrice: Number(item.unitPrice),
-        taxRate: Number(item.taxRate) || undefined,
-        discount: Number(item.discount) || undefined,
-      })),
+      items: formData.items
+        .filter((item) => item.serviceId)
+        .map((item) => ({
+          serviceId: item.serviceId,
+          description: item.description || undefined,
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+          taxRate: Number(item.taxRate) || undefined,
+          discount: Number(item.discount) || undefined,
+        })),
     };
 
-    createInvoice(submitData, { onSuccess: (data) => navigate(`/invoice/${data.data.id}`) });
+    createInvoice(submitData, {
+      onSuccess: (data) => navigate(`/invoice/${data.data.id}`),
+    });
   };
 
   // ─── Loading ──────────────────────────────────
@@ -325,7 +381,9 @@ useEffect(() => {
           type="button"
           onClick={() => switchMode("new")}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
-            mode === "new" ? "bg-brand text-white shadow-md" : "text-text-secondary hover:bg-surface-hover"
+            mode === "new"
+              ? "bg-brand text-white shadow-md"
+              : "text-text-secondary hover:bg-surface-hover"
           }`}
         >
           <TbFileInvoice size={18} /> New Invoice
@@ -334,7 +392,9 @@ useEffect(() => {
           type="button"
           onClick={() => switchMode("quotation")}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
-            mode === "quotation" ? "bg-brand text-white shadow-md" : "text-text-secondary hover:bg-surface-hover"
+            mode === "quotation"
+              ? "bg-brand text-white shadow-md"
+              : "text-text-secondary hover:bg-surface-hover"
           }`}
         >
           <TbQuote size={18} /> From Quotation
@@ -354,7 +414,11 @@ useEffect(() => {
       {(mode === "new" || selectedQuotation) && (
         <FormLayout
           title="New Invoice"
-          subtitle={mode === "quotation" ? "Creating invoice from approved quotation" : "Fill in the invoice details below"}
+          subtitle={
+            mode === "quotation"
+              ? "Creating invoice from approved quotation"
+              : "Fill in the invoice details below"
+          }
           icon={TbFileInvoice}
           onSubmit={handleSubmit}
           onCancel={() => navigate("/invoices")}
@@ -365,7 +429,11 @@ useEffect(() => {
           <FormSection
             icon={TbUser}
             title="Invoice Details"
-            subtitle={mode === "quotation" ? "Auto-filled from quotation" : "Select customer and dates"}
+            subtitle={
+              mode === "quotation"
+                ? "Auto-filled from quotation"
+                : "Select customer and dates"
+            }
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
@@ -412,15 +480,26 @@ useEffect(() => {
             onUpdateItem={updateItem}
             onAddItem={addItem}
             onRemoveItem={removeItem}
-            subtitle={mode === "quotation" ? "Items from quotation (editable)" : "Add services to invoice"}
+            subtitle={
+              mode === "quotation"
+                ? "Items from quotation (editable)"
+                : "Add services to invoice"
+            }
           />
 
           {/* Summary */}
           <FormSection icon={TbCalculator} title="Summary" variant="muted">
             <div className="space-y-2 text-sm">
-              <SummaryRow label="Subtotal" value={formatCurrency(totals.subtotal)} />
+              <SummaryRow
+                label="Subtotal"
+                value={formatCurrency(totals.subtotal)}
+              />
               <SummaryRow label="Tax" value={formatCurrency(totals.totalTax)} />
-              <SummaryRow label="Discount" value={`-${formatCurrency(totals.totalDiscount)}`} valueClassName="text-danger" />
+              <SummaryRow
+                label="Discount"
+                value={`-${formatCurrency(totals.totalDiscount)}`}
+                valueClassName="text-danger"
+              />
               <SummaryRow
                 label="Grand Total"
                 value={formatCurrency(totals.grandTotal)}
@@ -432,23 +511,29 @@ useEffect(() => {
           </FormSection>
 
           {/* Additional Info */}
-          <FormSection icon={TbFileText} title="Additional Info" variant="muted">
+          <FormSection
+            icon={TbFileText}
+            title="Additional Info"
+            variant="muted"
+          >
             <div className="space-y-4">
               <FormField label="Notes">
                 <textarea
                   value={formData.notes}
                   onChange={(e) => updateField("notes", e.target.value)}
                   placeholder="Any notes for the customer..."
-                  rows={2}
+                  rows={4}
                   className="w-full px-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all resize-none"
                 />
               </FormField>
               <FormField label="Terms & Conditions">
                 <textarea
                   value={formData.termsConditions}
-                  onChange={(e) => updateField("termsConditions", e.target.value)}
+                  onChange={(e) =>
+                    updateField("termsConditions", e.target.value)
+                  }
                   placeholder="Terms and conditions..."
-                  rows={2}
+                  rows={8}
                   className="w-full px-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all resize-none"
                 />
               </FormField>

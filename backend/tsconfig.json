@@ -12,7 +12,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "paths": {
-      "@invoice/shared": ["../packages/shared"]
+      "@invoice/shared": ["../packages/shared"],
+      "@invoice/shared/*": ["../packages/shared/*"]
     },
     "baseUrl": "."
   },

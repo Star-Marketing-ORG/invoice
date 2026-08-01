@@ -2,7 +2,7 @@
 import { Pagination } from "./pagination";
 
 export class Filter {
-  static async filter<T extends { id: string }>(
+  static async filter<T extends { id: string }>( 
     findMany: (args: any) => Promise<T[]>,
     params: {
       filters: Record<string, any>;
@@ -24,7 +24,7 @@ export class Filter {
           // Check if key contains 'Date' OR 'createdAt' or 'updatedAt' etc.
           const isDateField =
             key.includes("Date") ||
-            key.includes("createdAt") ||
+            key.includes("createdAt") || 
             key.includes("updatedAt") ||
             key.includes("dueDate") ||
             key.includes("issueDate") ||

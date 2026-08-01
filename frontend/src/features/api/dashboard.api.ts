@@ -12,4 +12,7 @@ export const dashboardApi = {
 
   getPaymentMethods: () =>
     axiosInstance.get("/dashboard/payment-methods").then((res) => res.data),
+
+  getServiceDemand: () =>
+    axiosInstance.get("/dashboard/service-demand").then((res) => res.data),
 };

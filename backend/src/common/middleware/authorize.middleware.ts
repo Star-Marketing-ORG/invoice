@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 
 import { AppError } from "../errors/AppError";
 import { HTTP_STATUS } from "../constants/httpStatus";
+import { MESSAGES } from "../constants/messages";
 
 type UserRole = "ADMIN" | "USER";
 
@@ -14,8 +15,8 @@ export const authorize =
       return next(
         new AppError({
           statusCode: HTTP_STATUS.UNAUTHORIZED,
-          message: "Authentication required",
-        })
+          message: MESSAGES.AUTHENTICATION_REQUIRED,
+        }),
       );
     }
 
@@ -27,7 +28,7 @@ export const authorize =
         new AppError({
           statusCode: HTTP_STATUS.FORBIDDEN,
           message: "You do not have permission to perform this action",
-        })
+        }),
       );
     }
 

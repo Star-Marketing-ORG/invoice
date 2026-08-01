@@ -41,3 +41,10 @@ export function useDashboardPaymentMethods() {
     queryFn: dashboardApi.getPaymentMethods,
   });
 }
+
+export const useDashboardServiceDemand = () => {
+  return useQuery({
+    queryKey: ["dashboard", "service-demand"],
+    queryFn: () => dashboardApi.getServiceDemand(),
+  });
+};

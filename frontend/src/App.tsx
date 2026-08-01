@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/TablePage/Dashboard";
 import Invoices from "./pages/TablePage/Invoices";
@@ -20,6 +20,18 @@ import UpdatePayment from "./pages/UpdatePage/UpdatePayment";
 import NewQuotation from "./pages/NewPage/NewQuotation";
 import Setting from "./pages/auth/Setting";
 import LPHomepage from "./pages/LPPage/LPHomepage";
+import Notification from "./pages/auth/Notification";
+
+// Protected Route Component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
@@ -41,8 +53,8 @@ function App() {
       <Routes>
         {/* Landing page route - outside dashboard layout */}
         <Route path="/" element={<LPHomepage />} />
-        
-        {/* Dashboard routes - using layout route pattern */}
+
+        {/* Dashboard routes */}
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/invoices" element={<Invoices />} />
@@ -51,10 +63,11 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/payments" element={<Payments />} />
-          <Route path="/settings" element={<Setting />} />
+
           {/* NEW */}
           <Route path="/invoice/new-invoice" element={<NewInvoice />} />
           <Route path="/quotation/new-quotation" element={<NewQuotation />} />
+
           {/* UPDATE */}
           <Route path="/invoice/:id" element={<UpdateInvoice />} />
           <Route path="/quotation/:id" element={<UpdateQuotation />} />
@@ -62,8 +75,32 @@ function App() {
           <Route path="/service/:id" element={<UpdateService />} />
           <Route path="/category/:id" element={<UpdateCategory />} />
           <Route path="/payment/:id" element={<UpdatePayment />} />
-          {/* PROFILE */}
-          <Route path="/profile" element={<Profile />} />
+
+          {/* PROTECTED ROUTES */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Setting />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notification />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </div>

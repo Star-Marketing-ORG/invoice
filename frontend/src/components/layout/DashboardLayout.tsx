@@ -12,12 +12,12 @@ export function DashboardLayout() {
       <Sidebar />
 
       {/* Right Content Area */}
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden px-3">
+      <div className="flex flex-1 flex-col min-w-0 overflow-y-auto px-3">
         {/* Header - Fixed at top, doesn't scroll */}
         <Header />
 
         {/* Children - Only this area scrolls */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

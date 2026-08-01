@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Command } from "cmdk";
 import {
   TbSearch,
-  TbBell,
   TbPlus,
   TbUser,
   TbLogin,
@@ -15,6 +14,7 @@ import {
   TbCommand,
 } from "react-icons/tb";
 import { LoginPanel } from "./LoginPanel";
+import { NotificationDropdown } from "./NotificationDropdown";
 import { useAuthStore } from "../../store/authStore";
 import { toast } from "../../utils/toast";
 import { Button } from "../ui/ButtonProps";
@@ -105,7 +105,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-30">
+      <header className="top-0 z-30">
         <div className="flex items-center justify-between h-20">
           {/* Left - Brand + Greeting */}
           <div className="flex items-center gap-6">
@@ -127,7 +127,6 @@ export function Header() {
           {/* Right - Actions */}
           <div className="flex items-center gap-2">
             {/* Search with cmdk Inline */}
-            {/* Search with cmdk — Single Input */}
             <div data-search className="relative hidden md:block">
               <Command className="relative">
                 <div className="relative">
@@ -215,16 +214,8 @@ export function Header() {
               <TbSearch size={20} className="text-text-secondary" />
             </button>
 
-            {/* Notification Bell */}
-            <button className="relative p-2.5 hover:bg-surface-hover rounded-2xl transition-colors group">
-              <TbBell
-                size={20}
-                className="text-text-secondary group-hover:text-text-primary transition-colors"
-              />
-              <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-danger rounded-full ring-2 ring-white">
-                <span className="absolute inset-0 bg-danger rounded-full animate-ping opacity-75" />
-              </span>
-            </button>
+            {/* Notification Bell - Component */}
+            {isAuthenticated && <NotificationDropdown />}
 
             <Link to={"/invoice/new-invoice"}>
               <Button variant="primary" size="md" icon={TbPlus}>

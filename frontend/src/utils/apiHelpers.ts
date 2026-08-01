@@ -5,3 +5,4 @@ export function extractListData<T>(response: any): T[] {
     return response.data.data;
   return [];
 }
+   

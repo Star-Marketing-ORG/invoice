@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import Chart from "react-apexcharts";
 import { motion } from "framer-motion";
 import { MdPieChart } from "react-icons/md";
+import { Skeleton } from "../ui/SkeletonCard";
 
 const donutColors = ["#059669", "#2563EB", "#DC2626", "#94A3B8", "#CBD5E1"];
 
@@ -13,12 +14,33 @@ interface InvoiceStatusProps {
   isLoading?: boolean;
 }
 
-export default function InvoiceStatusChart({ data, isLoading }: InvoiceStatusProps) {
+const InvoiceStatusChart = memo(function InvoiceStatusChart({ data, isLoading }: InvoiceStatusProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   if (isLoading || !data) {
     return (
-      <div className="bg-white rounded-3xl border border-border p-6 animate-pulse h-[420px]" />
+      <div className="bg-white rounded-3xl border border-border p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Skeleton className="w-9 h-9 rounded-xl" />
+          <div>
+            <Skeleton className="h-4 w-28 mb-1" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+        <div className="flex justify-center">
+          <Skeleton className="w-[220px] h-[220px] rounded-full" />
+        </div>
+        <div className="grid grid-cols-5 gap-2 mt-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex flex-col items-center gap-1.5 p-2">
+              <Skeleton className="w-2.5 h-2.5 rounded-full" />
+              <Skeleton className="h-3 w-8" />
+              <Skeleton className="h-3 w-12" />
+              <Skeleton className="h-3 w-6" />
+            </div>
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -84,7 +106,6 @@ export default function InvoiceStatusChart({ data, isLoading }: InvoiceStatusPro
             <Chart options={donutOptions} series={data.series} type="donut" height={260} />
           </div>
 
-          {/* Legend */}
           <div className="w-full mt-2">
             <div className="grid grid-cols-5 gap-2">
               {data.labels.map((label, index) => {
@@ -123,4 +144,6 @@ export default function InvoiceStatusChart({ data, isLoading }: InvoiceStatusPro
       </div>
     </motion.div>
   );
-}
+});
+
+export default InvoiceStatusChart;

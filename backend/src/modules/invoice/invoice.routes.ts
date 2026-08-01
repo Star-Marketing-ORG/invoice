@@ -16,6 +16,8 @@ router.get("/search", invoiceController.searchInvoices);
 router.get("/filter", invoiceController.filterInvoices);
 router.get("/:id", invoiceController.getInvoiceById);
 
+router.post("/:id/send-pdf", authMiddleware, invoiceController.sendPdf);
+
 router.post(
   "/",
   authMiddleware,
@@ -40,6 +42,11 @@ router.patch(
   invoiceController.updateInvoiceStatus,
 );
 
-router.delete("/:id", authMiddleware, authorize("ADMIN"), invoiceController.deleteInvoice);
+router.delete(
+  "/:id",
+  authMiddleware,
+  authorize("ADMIN"),
+  invoiceController.deleteInvoice,
+);
 
 export { router as invoiceRouter };

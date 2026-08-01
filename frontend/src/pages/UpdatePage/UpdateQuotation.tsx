@@ -34,6 +34,7 @@ import { FormSection } from "../../components/ui/FormSection";
 import { FormField } from "../../components/ui/FormField";
 import { CustomerSelector } from "../../components/layout/CustomerSelector";
 import { LineItemsSection } from "../../components/layout/LineItemsSection";
+import { Skeleton } from "../../components/ui/SkeletonCard";
 
 // Types
 interface Service {
@@ -332,14 +333,17 @@ export default function UpdateQuotation() {
   // ─── Loading ──────────────────────────────────
   if (isLoading) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="text-center">
-          <TbLoader
-            size={40}
-            className="text-brand animate-spin mx-auto mb-4"
-          />
-          <p className="text-text-secondary">Loading quotation details...</p>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center gap-3 mb-2">
+          <Skeleton className="h-10 w-10 rounded-xl" />
+          <div>
+            <Skeleton className="h-6 w-64 mb-1" />
+            <Skeleton className="h-4 w-48" />
+          </div>
         </div>
+        <Skeleton className="h-16 w-full rounded-2xl" />
+        <Skeleton className="h-[300px] w-full rounded-2xl" />
+        <Skeleton className="h-[200px] w-full rounded-2xl" />
       </div>
     );
   }

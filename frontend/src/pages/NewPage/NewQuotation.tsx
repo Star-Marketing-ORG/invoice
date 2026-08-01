@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TbFileText, TbUser, TbCalendar, TbCalculator } from "react-icons/tb";
 import { useCreateQuotation } from "../../features/hooks/useQuotations";
@@ -78,6 +78,19 @@ export default function NewQuotation() {
   const [serviceSearch, setServiceSearch] = useState<Record<string, string>>(
     {},
   );
+
+  useEffect(() => {
+    const savedTerms = localStorage.getItem("invoiceTerms");
+    const savedNotes = localStorage.getItem("invoiceNotes");
+
+    if (savedTerms || savedNotes) {
+      setFormData((prev) => ({
+        ...prev,
+        termsConditions: savedTerms || prev.termsConditions,
+        notes: savedNotes || prev.notes,
+      }));
+    }
+  }, []);
 
   const { mutate: createQuotation, isPending } = useCreateQuotation();
 
@@ -297,7 +310,7 @@ export default function NewQuotation() {
           </div>
         </FormSection>
 
-      {/* Line Items */}
+        {/* Line Items */}
         <LineItemsSection
           items={formData.items}
           services={services}
@@ -344,7 +357,7 @@ export default function NewQuotation() {
                 value={formData.notes}
                 onChange={(e) => updateField("notes", e.target.value)}
                 placeholder="Any notes for the customer..."
-                rows={2}
+                rows={4}
                 className="w-full px-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all resize-none"
               />
             </FormField>
@@ -353,7 +366,7 @@ export default function NewQuotation() {
                 value={formData.termsConditions}
                 onChange={(e) => updateField("termsConditions", e.target.value)}
                 placeholder="Terms and conditions..."
-                rows={2}
+                rows={8}
                 className="w-full px-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all resize-none"
               />
             </FormField>

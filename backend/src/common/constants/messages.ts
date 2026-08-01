@@ -12,5 +12,5 @@ export const MESSAGES = {
 
   INTERNAL_SERVER_ERROR: "Internal server error",
   INVALID_OR_EXPIRED_TOKEN: "Invalid Token or Expire",
-  AUTHENTICATION_REQUIRED: "Authentication required",
+  AUTHENTICATION_REQUIRED: "Login required",
 } as const;

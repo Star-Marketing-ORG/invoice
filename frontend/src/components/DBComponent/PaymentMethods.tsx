@@ -7,6 +7,7 @@ import {
   TbDots,
   TbWallet,
 } from "react-icons/tb";
+import { Skeleton } from "../ui/SkeletonCard";
 
 const iconMap: Record<string, any> = {
   "UPI Payments": TbSend,
@@ -43,7 +44,32 @@ interface PaymentMethodsProps {
 export default function PaymentMethods({ data, isLoading }: PaymentMethodsProps) {
   if (isLoading || !data) {
     return (
-      <div className="bg-white rounded-3xl border border-border p-6 animate-pulse h-[420px]" />
+      <div className="bg-white rounded-3xl border border-border p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <Skeleton className="w-9 h-9 rounded-xl" />
+          <div>
+            <Skeleton className="h-4 w-32 mb-1" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-10 h-10 rounded-xl" />
+                <div>
+                  <Skeleton className="h-4 w-24 mb-1" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Skeleton className="w-2 h-2 rounded-full" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -90,7 +116,7 @@ export default function PaymentMethods({ data, isLoading }: PaymentMethodsProps)
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.3 }}
                 whileHover={{ x: 4 }}
-                className="flex  items-center justify-between p-4 rounded-2xl hover:bg-surface-hover transition-all duration-200 cursor-pointer group"
+                className="flex items-center justify-between p-4 rounded-2xl hover:bg-surface-hover transition-all duration-200 cursor-pointer group"
               >
                 <div className="flex items-center gap-3">
                   <motion.div

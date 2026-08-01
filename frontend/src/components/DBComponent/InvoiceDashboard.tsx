@@ -2,6 +2,7 @@ import { TbFileInvoice, TbArrowRight } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
+import { Skeleton } from "../ui/SkeletonCard";
 
 interface Invoice {
   id: string;
@@ -17,6 +18,7 @@ interface Invoice {
 
 interface InvoiceDashboardProps {
   invoices?: Invoice[];
+  isLoading?: boolean;
 }
 
 const statusColors: Record<string, string> = {
@@ -53,16 +55,48 @@ const itemVariants: Variants = {
   },
 };
 
-interface InvoiceDashboardProps {
-  invoices?: Invoice[];
-}
-
 export default function InvoiceDashboard({
   invoices = [],
+  isLoading,
 }: InvoiceDashboardProps) {
   const navigate = useNavigate();
-
   const displayInvoices = invoices.slice(0, 5);
+
+  if (isLoading) {
+    return (
+      <div className="h-full">
+        <div className="bg-white rounded-3xl border border-border p-6 h-full">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-9 h-9 rounded-xl" />
+              <div>
+                <Skeleton className="h-4 w-28 mb-1" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </div>
+            <Skeleton className="h-4 w-16" />
+          </div>
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-2 h-2 rounded-full" />
+                  <div>
+                    <Skeleton className="h-4 w-24 mb-1" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-5 w-14 rounded-lg" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full">
@@ -118,73 +152,67 @@ export default function InvoiceDashboard({
             </motion.button>
           </div>
 
-          {displayInvoices.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-sm text-text-muted">No recent invoices</p>
-            </div>
-          ) : (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="space-y-2"
-            >
-              {displayInvoices.map((inv, index) => (
-                <motion.div
-                  key={inv.id}
-                  variants={itemVariants}
-                  whileHover={{
-                    scale: 1.02,
-                    backgroundColor: "rgba(0,0,0,0.02)",
-                    transition: { type: "spring", stiffness: 400, damping: 25 },
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate(`/invoice/${inv.id}`)}
-                  className="flex items-center justify-between py-3 rounded-2xl hover:bg-surface-hover transition-colors cursor-pointer group/row"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        delay: index * 0.3,
-                        ease: "easeInOut",
-                      }}
-                      className={`w-2 h-2 rounded-full shrink-0 ${statusDots[inv.status] || "bg-slate-400"} group-hover/row:scale-125 transition-transform`}
-                    />
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-text-primary font-mono">
-                        #{inv.invoiceNumber}
-                      </p>
-                      <p className="text-xs text-text-muted truncate">
-                        {inv.customer?.name || "Unknown"}
-                      </p>
-                    </div>
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-2"
+          >
+            {displayInvoices.map((inv, index) => (
+              <motion.div
+                key={inv.id}
+                variants={itemVariants}
+                whileHover={{
+                  scale: 1.02,
+                  backgroundColor: "rgba(0,0,0,0.02)",
+                  transition: { type: "spring", stiffness: 400, damping: 25 },
+                }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate(`/invoice/${inv.id}`)}
+                className="flex items-center justify-between py-2 rounded-2xl hover:bg-surface-hover transition-colors cursor-pointer group/row"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      delay: index * 0.3,
+                      ease: "easeInOut",
+                    }}
+                    className={`w-2 h-2 rounded-full shrink-0 ${statusDots[inv.status] || "bg-slate-400"} group-hover/row:scale-125 transition-transform`}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-text-primary font-mono">
+                      #{inv.invoiceNumber}
+                    </p>
+                    <p className="text-xs text-text-muted truncate">
+                      {inv.customer?.name || "Unknown"}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 + index * 0.1 }}
-                      className="text-sm font-semibold text-text-primary"
-                    >
-                      ₹{inv.total.toLocaleString("en-IN")}
-                    </motion.span>
-                    <motion.span
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.6 + index * 0.1 }}
-                      whileHover={{ scale: 1.05 }}
-                      className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${statusColors[inv.status] || "bg-slate-50 text-slate-600 border-slate-200"}`}
-                    >
-                      {inv.status}
-                    </motion.span>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
+                    className="text-sm font-semibold text-text-primary"
+                  >
+                    ₹{inv.total.toLocaleString("en-IN")}
+                  </motion.span>
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.6 + index * 0.1 }}
+                    whileHover={{ scale: 1.05 }}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${statusColors[inv.status] || "bg-slate-50 text-slate-600 border-slate-200"}`}
+                  >
+                    {inv.status}
+                  </motion.span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </motion.div>
     </div>

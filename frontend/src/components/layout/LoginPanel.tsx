@@ -12,7 +12,6 @@ export function LoginPanel({ onSuccess }: LoginPanelProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
 
   const login = useAuthStore((state) => state.login);
 
@@ -64,8 +63,8 @@ export function LoginPanel({ onSuccess }: LoginPanelProps) {
     <div>
       {/* Logo */}
       <div className="text-center mb-8">
-        <div className="w-14 h-14 bg-brand rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand/25">
-          <TbSparkles size={28} className="text-white" />
+        <div className="w-14 h-14  flex items-center justify-center mx-auto mb-4 shadow-brand/25">
+          <img src="/favicon.svg" alt="" />
         </div>
         <h1 className="text-2xl font-bold text-text-primary">Welcome back</h1>
         <p className="text-text-secondary text-sm mt-2">
@@ -128,24 +127,6 @@ export function LoginPanel({ onSuccess }: LoginPanelProps) {
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 rounded border-border text-brand focus:ring-brand/20"
-            />
-            <span className="text-sm text-text-secondary">Remember me</span>
-          </label>
-          <button
-            type="button"
-            className="text-sm font-medium text-brand hover:underline"
-          >
-            Forgot password?
-          </button>
-        </div>
-
         <button
           type="submit"
           disabled={isSubmitting}
@@ -161,13 +142,6 @@ export function LoginPanel({ onSuccess }: LoginPanelProps) {
           )}
         </button>
       </form>
-
-      <p className="text-center text-sm text-text-secondary mt-6">
-        Don't have an account?{" "}
-        <button className="font-medium text-brand hover:underline">
-          Sign up
-        </button>
-      </p>
     </div>
   );
 }

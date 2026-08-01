@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -11,15 +9,25 @@ import {
   TbCash,
   TbLock,
 } from "react-icons/tb";
-import { updateInvoiceSchema, updateInvoiceStatusSchema } from "@invoice/shared";
+import {
+  updateInvoiceSchema,
+  updateInvoiceStatusSchema,
+} from "@invoice/shared";
 import type { UpdateInvoiceDto } from "@invoice/shared/types";
 import {
   useInvoice,
   useUpdateInvoice,
   useUpdateInvoiceStatus,
 } from "../../features/hooks/useInvoices";
-import { useServices, useSearchServices } from "../../features/hooks/useServices";
-import { calcItemTotal, calcTotals, formatCurrency } from "../../utils/moneyCalc";
+import {
+  useServices,
+  useSearchServices,
+} from "../../features/hooks/useServices";
+import {
+  calcItemTotal,
+  calcTotals,
+  formatCurrency,
+} from "../../utils/moneyCalc";
 import { extractListData } from "../../utils/apiHelpers";
 import { toast } from "../../utils/toast";
 import type { CalcItem } from "../../utils/moneyCalc";
@@ -28,6 +36,7 @@ import { FormSection } from "../../components/ui/FormSection";
 import { FormField } from "../../components/ui/FormField";
 import { CustomerSelector } from "../../components/layout/CustomerSelector";
 import { LineItemsSection } from "../../components/layout/LineItemsSection";
+import { Skeleton } from "../../components/ui/SkeletonCard";
 
 // Types
 interface Service {
@@ -127,17 +136,24 @@ export default function UpdateInvoice() {
     items: [emptyItem()],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [serviceSearch, setServiceSearch] = useState<Record<string, string>>({});
+  const [serviceSearch, setServiceSearch] = useState<Record<string, string>>(
+    {},
+  );
 
   const { data: invoice, isLoading } = useInvoice(id!);
   const isFromQuotation = Boolean(invoice?.data?.isFromQuotation);
 
   const { mutate: updateInvoice, isPending } = useUpdateInvoice();
-  const { mutate: updateStatus, isPending: isUpdatingStatus } = useUpdateInvoiceStatus();
+  const { mutate: updateStatus, isPending: isUpdatingStatus } =
+    useUpdateInvoiceStatus();
 
   const { data: servicesData } = useServices({ cursor: "" });
-  const { data: searchedServices } = useSearchServices({ q: serviceSearch.global || "" });
-  const services = extractListData<Service>(serviceSearch.global ? searchedServices : servicesData);
+  const { data: searchedServices } = useSearchServices({
+    q: serviceSearch.global || "",
+  });
+  const services = extractListData<Service>(
+    serviceSearch.global ? searchedServices : servicesData,
+  );
 
   // Populate form
   useEffect(() => {
@@ -174,7 +190,8 @@ export default function UpdateInvoice() {
   const totals = calcTotals(formData.items);
   const payments = (invoice as any)?.data?.payments || [];
   const totalPaid = (invoice as any)?.data?.totalPaid || 0;
-  const remainingBalance = (invoice as any)?.data?.remainingBalance || totals.grandTotal;
+  const remainingBalance =
+    (invoice as any)?.data?.remainingBalance || totals.grandTotal;
 
   // ─── Items ────────────────────────────────────
   const addItem = () => {
@@ -184,11 +201,21 @@ export default function UpdateInvoice() {
 
   const removeItem = (itemId: string) => {
     if (isFromQuotation) return;
-    if (formData.items.length === 1) { toast.error("At least one service item is required"); return; }
-    setFormData((prev) => ({ ...prev, items: prev.items.filter((item) => item.id !== itemId) }));
+    if (formData.items.length === 1) {
+      toast.error("At least one service item is required");
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      items: prev.items.filter((item) => item.id !== itemId),
+    }));
   };
 
-  const updateItem = (itemId: string, field: keyof LineItem, value: string | number) => {
+  const updateItem = (
+    itemId: string,
+    field: keyof LineItem,
+    value: string | number,
+  ) => {
     if (isFromQuotation) return;
     setFormData((prev) => ({
       ...prev,
@@ -198,29 +225,42 @@ export default function UpdateInvoice() {
 
         if (field === "serviceId" && typeof value === "string" && value) {
           const service = services.find((s) => s.id === value);
-          if (service) { updated.unitPrice = service.price; updated.taxRate = service.taxRate; }
+          if (service) {
+            updated.unitPrice = service.price;
+            updated.taxRate = service.taxRate;
+          }
         }
 
         updated.total = calcItemTotal(updated);
         return updated;
       }),
     }));
-    if (field === "serviceId") setServiceSearch((prev) => ({ ...prev, [itemId]: "" }));
+    if (field === "serviceId")
+      setServiceSearch((prev) => ({ ...prev, [itemId]: "" }));
   };
 
-  const handleServiceSelect = (itemId: string, serviceId: string) => updateItem(itemId, "serviceId", serviceId);
+  const handleServiceSelect = (itemId: string, serviceId: string) =>
+    updateItem(itemId, "serviceId", serviceId);
 
   // ─── Fields ───────────────────────────────────
   const updateField = (field: keyof FormData, value: string | number) => {
     if (isFromQuotation && field !== "status") return;
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => { const { [field]: _, ...rest } = prev; return rest; });
+    if (errors[field])
+      setErrors((prev) => {
+        const { [field]: _, ...rest } = prev;
+        return rest;
+      });
   };
 
   const selectCustomer = (customerId: string) => {
     if (isFromQuotation) return;
     setFormData((prev) => ({ ...prev, customerId }));
-    if (errors.customerId) setErrors((prev) => { const { customerId: _, ...rest } = prev; return rest; });
+    if (errors.customerId)
+      setErrors((prev) => {
+        const { customerId: _, ...rest } = prev;
+        return rest;
+      });
   };
 
   const clearCustomer = () => {
@@ -230,30 +270,50 @@ export default function UpdateInvoice() {
 
   // ─── Status ───────────────────────────────────
   const handleStatusChange = (newStatus: string) => {
-    const result = updateInvoiceStatusSchema.shape.body.safeParse({ status: newStatus });
+    const result = updateInvoiceStatusSchema.shape.body.safeParse({
+      status: newStatus,
+    });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach((err) => { fieldErrors["status"] = err.message; });
+      result.error.errors.forEach((err) => {
+        fieldErrors["status"] = err.message;
+      });
       setErrors(fieldErrors);
       return;
     }
     setErrors({});
-    updateStatus({ id: id!, status: newStatus }, {
-      onSuccess: () => setFormData((prev) => ({ ...prev, status: newStatus })),
-    });
+    updateStatus(
+      { id: id!, status: newStatus },
+      {
+        onSuccess: () =>
+          setFormData((prev) => ({ ...prev, status: newStatus })),
+      },
+    );
   };
 
   // ─── Validate & Submit ────────────────────────
   const validate = (): boolean => {
-    if (isFromQuotation) { setErrors({}); return true; }
+    if (isFromQuotation) {
+      setErrors({});
+      return true;
+    }
 
     const hasValidService = formData.items.some((item) => item.serviceId);
-    if (!hasValidService) { toast.error("Please select at least one service"); return false; }
+    if (!hasValidService) {
+      toast.error("Please select at least one service");
+      return false;
+    }
 
     const itemsWithService = formData.items.filter((item) => item.serviceId);
     for (const item of itemsWithService) {
-      if (!item.quantity || item.quantity < 1) { toast.error("All items must have a quantity of at least 1"); return false; }
-      if (!item.unitPrice || item.unitPrice <= 0) { toast.error("All items must have a price greater than 0"); return false; }
+      if (!item.quantity || item.quantity < 1) {
+        toast.error("All items must have a quantity of at least 1");
+        return false;
+      }
+      if (!item.unitPrice || item.unitPrice <= 0) {
+        toast.error("All items must have a price greater than 0");
+        return false;
+      }
     }
 
     const dataToValidate = {
@@ -266,20 +326,24 @@ export default function UpdateInvoice() {
       notes: formData.notes || undefined,
       termsConditions: formData.termsConditions || undefined,
       status: formData.status,
-      items: formData.items.filter((item) => item.serviceId).map((item) => ({
-        serviceId: item.serviceId,
-        description: item.description || undefined,
-        quantity: Number(item.quantity),
-        unitPrice: Number(item.unitPrice),
-        taxRate: Number(item.taxRate) || undefined,
-        discount: Number(item.discount) || undefined,
-      })),
+      items: formData.items
+        .filter((item) => item.serviceId)
+        .map((item) => ({
+          serviceId: item.serviceId,
+          description: item.description || undefined,
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+          taxRate: Number(item.taxRate) || undefined,
+          discount: Number(item.discount) || undefined,
+        })),
     };
 
     const result = updateInvoiceSchema.shape.body.safeParse(dataToValidate);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach((err) => { fieldErrors[err.path.join(".")] = err.message; });
+      result.error.errors.forEach((err) => {
+        fieldErrors[err.path.join(".")] = err.message;
+      });
       setErrors(fieldErrors);
       return false;
     }
@@ -301,27 +365,35 @@ export default function UpdateInvoice() {
       submitData.tax = Number(formData.tax) || 0;
       submitData.notes = formData.notes || undefined;
       submitData.termsConditions = formData.termsConditions || undefined;
-      submitData.items = formData.items.filter((item) => item.serviceId).map((item) => ({
-        serviceId: item.serviceId,
-        description: item.description || undefined,
-        quantity: Number(item.quantity),
-        unitPrice: Number(item.unitPrice),
-        taxRate: Number(item.taxRate) || undefined,
-        discount: Number(item.discount) || undefined,
-      }));
+      submitData.items = formData.items
+        .filter((item) => item.serviceId)
+        .map((item) => ({
+          serviceId: item.serviceId,
+          description: item.description || undefined,
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+          taxRate: Number(item.taxRate) || undefined,
+          discount: Number(item.discount) || undefined,
+        }));
     }
 
-  updateInvoice({ id: id!, data: submitData });
+    updateInvoice({ id: id!, data: submitData });
   };
 
   // ─── Loading ──────────────────────────────────
   if (isLoading) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="text-center">
-          <TbLoader size={40} className="text-brand animate-spin mx-auto mb-4" />
-          <p className="text-text-secondary">Loading invoice details...</p>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center gap-3 mb-2">
+          <Skeleton className="h-10 w-10 rounded-xl" />
+          <div>
+            <Skeleton className="h-6 w-64 mb-1" />
+            <Skeleton className="h-4 w-48" />
+          </div>
         </div>
+        <Skeleton className="h-16 w-full rounded-2xl" />
+        <Skeleton className="h-[300px] w-full rounded-2xl" />
+        <Skeleton className="h-[200px] w-full rounded-2xl" />
       </div>
     );
   }
@@ -334,9 +406,13 @@ export default function UpdateInvoice() {
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
           <TbLock size={20} className="text-amber-600 shrink-0" />
           <div>
-            <p className="text-sm font-medium text-amber-800">Quotation Invoice</p>
+            <p className="text-sm font-medium text-amber-800">
+              Quotation Invoice
+            </p>
             <p className="text-xs text-amber-600 mt-0.5">
-              Linked to Quotation #{invoice?.data?.quotation?.quotationNumber || "N/A"}. Only status can be modified.
+              Linked to Quotation #
+              {invoice?.data?.quotation?.quotationNumber || "N/A"}. Only status
+              can be modified.
             </p>
           </div>
         </div>
@@ -344,7 +420,11 @@ export default function UpdateInvoice() {
 
       <FormLayout
         title={`Update Invoice #${invoice?.data?.invoiceNumber}`}
-        subtitle={isFromQuotation ? "Quotation invoice — limited editing" : "Edit invoice details"}
+        subtitle={
+          isFromQuotation
+            ? "Quotation invoice — limited editing"
+            : "Edit invoice details"
+        }
         icon={TbFileInvoice}
         onSubmit={handleSubmit}
         onCancel={() => navigate("/invoices")}
@@ -354,8 +434,12 @@ export default function UpdateInvoice() {
       >
         {/* Status Selector */}
         <div className="flex items-center gap-3 p-4 bg-surface-hover rounded-2xl">
-          <span className="text-sm font-semibold text-text-primary">Status:</span>
-          <span className={`px-3 py-1.5 rounded-xl text-xs font-medium ${getStatusColor(formData.status)}`}>
+          <span className="text-sm font-semibold text-text-primary">
+            Status:
+          </span>
+          <span
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium ${getStatusColor(formData.status)}`}
+          >
             {formData.status.replace("_", " ")}
           </span>
           <select
@@ -365,7 +449,9 @@ export default function UpdateInvoice() {
             className="px-3 py-1.5 bg-white border border-border rounded-xl text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
           >
             {statusOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
             ))}
           </select>
           {isUpdatingStatus && (
@@ -377,7 +463,11 @@ export default function UpdateInvoice() {
         <FormSection
           icon={TbUser}
           title="Invoice Details"
-          subtitle={isFromQuotation ? "Customer and dates (locked)" : "Customer and dates"}
+          subtitle={
+            isFromQuotation
+              ? "Customer and dates (locked)"
+              : "Customer and dates"
+          }
           variant={isFromQuotation ? "muted" : "brand"}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -420,20 +510,33 @@ export default function UpdateInvoice() {
           items={formData.items}
           services={services}
           serviceSearch={serviceSearch}
-          onServiceSearchChange={(itemId, value) => setServiceSearch((prev) => ({ ...prev, [itemId]: value }))}
+          onServiceSearchChange={(itemId, value) =>
+            setServiceSearch((prev) => ({ ...prev, [itemId]: value }))
+          }
           onServiceSelect={handleServiceSelect}
           onUpdateItem={updateItem}
           onAddItem={addItem}
           onRemoveItem={removeItem}
-          subtitle={isFromQuotation ? "Services (locked)" : "Services included in invoice"}
+          subtitle={
+            isFromQuotation
+              ? "Services (locked)"
+              : "Services included in invoice"
+          }
         />
 
         {/* Summary */}
         <FormSection icon={TbCalculator} title="Summary" variant="muted">
           <div className="space-y-2 text-sm">
-            <SummaryRow label="Subtotal" value={formatCurrency(totals.subtotal)} />
+            <SummaryRow
+              label="Subtotal"
+              value={formatCurrency(totals.subtotal)}
+            />
             <SummaryRow label="Tax" value={formatCurrency(totals.totalTax)} />
-            <SummaryRow label="Discount" value={`-${formatCurrency(totals.totalDiscount)}`} valueClassName="text-danger" />
+            <SummaryRow
+              label="Discount"
+              value={`-${formatCurrency(totals.totalDiscount)}`}
+              valueClassName="text-danger"
+            />
             <SummaryRow
               label="Grand Total"
               value={formatCurrency(totals.grandTotal)}
@@ -443,13 +546,19 @@ export default function UpdateInvoice() {
             />
             {totalPaid > 0 && (
               <>
-                <SummaryRow label="Total Paid" value={formatCurrency(totalPaid)} valueClassName="text-success" />
+                <SummaryRow
+                  label="Total Paid"
+                  value={formatCurrency(totalPaid)}
+                  valueClassName="text-success"
+                />
                 <SummaryRow
                   label="Remaining Balance"
                   value={formatCurrency(remainingBalance)}
                   className="pt-3 border-t border-border text-base font-bold"
                   labelClassName="text-text-primary"
-                  valueClassName={remainingBalance > 0 ? "text-danger" : "text-success"}
+                  valueClassName={
+                    remainingBalance > 0 ? "text-danger" : "text-success"
+                  }
                 />
               </>
             )}
@@ -458,25 +567,45 @@ export default function UpdateInvoice() {
 
         {/* Payments */}
         {payments.length > 0 && (
-          <FormSection icon={TbCash} title="Payments" subtitle={`${payments.length} payment(s) received`} variant="muted">
+          <FormSection
+            icon={TbCash}
+            title="Payments"
+            subtitle={`${payments.length} payment(s) received`}
+            variant="muted"
+          >
             <div className="space-y-3">
               {payments.map((payment: Payment) => (
-                <div key={payment.id} className="p-4 bg-surface-hover rounded-2xl border border-border space-y-2">
+                <div
+                  key={payment.id}
+                  className="p-4 bg-surface-hover rounded-2xl border border-border space-y-2"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-mono font-medium text-text-primary">#{payment.paymentNumber}</span>
+                      <span className="text-sm font-mono font-medium text-text-primary">
+                        #{payment.paymentNumber}
+                      </span>
                       <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium">
                         {payment.status}
                       </span>
                     </div>
-                    <span className="text-sm font-bold font-mono text-success">{formatCurrency(Number(payment.amount))}</span>
+                    <span className="text-sm font-bold font-mono text-success">
+                      {formatCurrency(Number(payment.amount))}
+                    </span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-text-muted">
                     <span>{getPaymentMethodLabel(payment.paymentMethod)}</span>
-                    <span>{new Date(payment.paymentDate).toLocaleDateString("en-IN")}</span>
-                    {payment.transactionNumber && <span>TXN: {payment.transactionNumber}</span>}
+                    <span>
+                      {new Date(payment.paymentDate).toLocaleDateString(
+                        "en-IN",
+                      )}
+                    </span>
+                    {payment.transactionNumber && (
+                      <span>TXN: {payment.transactionNumber}</span>
+                    )}
                   </div>
-                  {payment.notes && <p className="text-xs text-text-muted">{payment.notes}</p>}
+                  {payment.notes && (
+                    <p className="text-xs text-text-muted">{payment.notes}</p>
+                  )}
                 </div>
               ))}
             </div>
@@ -487,7 +616,9 @@ export default function UpdateInvoice() {
         <FormSection
           icon={TbFileInvoice}
           title="Additional Info"
-          subtitle={isFromQuotation ? "Notes (locked)" : "Additional information"}
+          subtitle={
+            isFromQuotation ? "Notes (locked)" : "Additional information"
+          }
           variant={isFromQuotation ? "muted" : "brand"}
         >
           <div className="space-y-4">

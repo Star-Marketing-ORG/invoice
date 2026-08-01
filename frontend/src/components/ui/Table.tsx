@@ -10,6 +10,7 @@ import {
   TbChevronRight,
 } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
+import { Skeleton } from "./SkeletonCard";
 
 interface Column<T> {
   accessorKey?: string;
@@ -200,10 +201,10 @@ export function Table<T extends { id: string }>({
   };
 
   const SkeletonRow = () => (
-    <tr className="animate-pulse">
+    <tr>
       {columns.map((col) => (
-        <td key={col.key || col.accessorKey} className="px-6 py-4">
-          <div className="h-4 bg-white rounded-full w-3/4"></div>
+        <td key={col.key || col.accessorKey} className="px-6 py-4 first:pl-0">
+          <Skeleton className="h-4 w-3/4" />
         </td>
       ))}
     </tr>

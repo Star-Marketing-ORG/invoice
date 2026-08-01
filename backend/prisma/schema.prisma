@@ -20,7 +20,7 @@ model User {
   email     String   @unique
   password  String
   role      Role     @default(USER)
-    quotations   Quotation[]
+  quotations   Quotation[]
   invoices     Invoice[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,7 +49,7 @@ model Customer {
   id           String   @id @default(cuid())
   customerCode String   @unique
   name         String
-  email        String?
+  email        String? 
   phone        String
   address      String?
   gstNumber    String?
@@ -136,6 +136,7 @@ model Quotation {
 
   items             QuotationItem[]
   invoices          Invoice[] 
+  notifications  Notification[]
 
   createdById       String?
   createdBy         User?             @relation(fields: [createdById], references: [id])
@@ -215,10 +216,14 @@ model Invoice {
   notes           String?
   termsConditions String?
   createdById   String?
-    createdBy     User?       @relation(fields: [createdById], references: [id])
+  createdBy     User?       @relation(fields: [createdById], references: [id])
 
   items           InvoiceItem[]
   payments        Payment[]
+  notifications  Notification[]
+
+  emailDueReminderSent    Boolean  @default(false) 
+  emailOverdueSent        Boolean  @default(false) 
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -315,4 +320,41 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
+}
+
+
+enum NotificationType {
+  DUE_IN_TWO_DAYS
+  DUE_TOMORROW
+  DUE_TODAY
+  DUE_NOW
+  EXPIRED
+}
+
+enum NotificationEntity {
+  INVOICE
+  QUOTATION
+}
+
+model Notification {
+  id            String             @id @default(cuid())
+  type          NotificationType
+  entity        NotificationEntity
+  message       String
+  isRead        Boolean            @default(false)
+  
+  // Relations - optional, can be null
+  invoiceId     String?
+  invoice       Invoice?           @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  quotationId   String?
+  quotation     Quotation?         @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime           @default(now())
+  readAt        DateTime?
+
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([invoiceId])
+  @@index([quotationId])
+  @@map("notifications")
 }

@@ -341,19 +341,125 @@ export class InvoiceRepository {
   }
 
   async getStatusBreakdown() {
-  const statuses = ["PAID", "SENT", "OVERDUE", "DRAFT", "CANCELLED"];
-  
-  const result = await Promise.all(
-    statuses.map(async (status) => {
-      const count = await prisma.invoice.count({
-        where: { status: status as any },
-      });
-      return { status, count };
-    })
-  );
+    const statuses = ["PAID", "SENT", "OVERDUE", "DRAFT", "CANCELLED"];
 
-  return result;
-}
+    const result = await Promise.all(
+      statuses.map(async (status) => {
+        const count = await prisma.invoice.count({
+          where: { status: status as any },
+        });
+        return { status, count };
+      }),
+    );
+
+    return result;
+  }
+
+  async getServiceDemandStats() {
+    const result = await prisma.invoiceItem.groupBy({
+      by: ["serviceId"],
+      _count: {
+        serviceId: true,
+      },
+      orderBy: {
+        _count: {
+          serviceId: "desc",
+        },
+      },
+      take: 5,
+    });
+
+    const servicesWithNames = await Promise.all(
+      result.map(async (item) => {
+        const service = await prisma.service.findUnique({
+          where: { id: item.serviceId },
+          select: { name: true },
+        });
+        return {
+          name: service?.name || "Unknown",
+          count: item._count.serviceId,
+        };
+      }),
+    );
+
+    const maxCount = servicesWithNames[0]?.count || 1;
+    return servicesWithNames.map((s) => ({
+      ...s,
+      percent: Math.round((s.count / maxCount) * 100),
+    }));
+  }
+
+  async markEmailDueReminderSent(invoiceId: string) {
+    return prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        emailDueReminderSent: true,
+      },
+    });
+  }
+
+  async markEmailOverdueSent(invoiceId: string) {
+    return prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        emailOverdueSent: true,
+      },
+    });
+  }
+
+  async findInvoicesForDueReminder() {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const twoDaysFromNow = new Date(today);
+    twoDaysFromNow.setDate(twoDaysFromNow.getDate() + 2);
+
+    return prisma.invoice.findMany({
+      where: {
+        status: {
+          notIn: ["PAID", "CANCELLED", "OVERDUE"],
+        },
+        dueDate: {
+          not: null,
+        },
+        emailDueReminderSent: false, // Only get invoices where email NOT sent
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findInvoicesForOverdueEmail() {
+    return prisma.invoice.findMany({
+      where: {
+        status: {
+          notIn: ["PAID", "CANCELLED"],
+        },
+        dueDate: {
+          lt: new Date(new Date().setHours(0, 0, 0, 0)),
+        },
+        emailOverdueSent: false,
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+    });
+  }
+
 }
 
 export const invoiceRepository = new InvoiceRepository();

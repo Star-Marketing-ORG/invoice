@@ -1,6 +1,7 @@
 import { TbFileText, TbUsers, TbArrowRight } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Skeleton } from "../ui/SkeletonCard";
 
 interface Quotation {
   id: string;
@@ -54,11 +55,13 @@ const itemVariants = {
 interface QuotationCustomerProps {
   quotations?: Quotation[];
   customers?: Customer[];
+  isLoading?: boolean;
 }
 
 export default function QuotationCustomer({
   quotations = [],
   customers = [],
+  isLoading,
 }: QuotationCustomerProps) {
   const navigate = useNavigate();
 
@@ -70,6 +73,44 @@ export default function QuotationCustomer({
     if (typeof customer === "string") return customer;
     return customer.name || "Unknown";
   };
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {[1, 2].map((card) => (
+          <div key={card} className="bg-white rounded-3xl border border-border p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-9 h-9 rounded-xl" />
+                <div>
+                  <Skeleton className="h-4 w-32 mb-1" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
+              <Skeleton className="h-4 w-16" />
+            </div>
+            <div className="space-y-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-center justify-between p-3">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-2 h-2 rounded-full" />
+                    <div>
+                      <Skeleton className="h-4 w-28 mb-1" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-5 w-14 rounded-lg" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

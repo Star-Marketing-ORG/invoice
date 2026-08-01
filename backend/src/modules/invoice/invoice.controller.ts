@@ -3,6 +3,7 @@ import { asyncHandler } from "../../common/utils/asyncHandler";
 import { apiResponse } from "../../common/utils/apiResponse";
 import { invoiceService } from "./invoice.service";
 import { HTTP_STATUS } from "../../common/constants/httpStatus";
+import { AppError } from "src/common/errors/AppError";
 
 class InvoiceController {
   getAllInvoices = asyncHandler(async (_req: Request, res: Response) => {
@@ -74,27 +75,43 @@ class InvoiceController {
     });
   });
 
-
   searchInvoices = asyncHandler(async (req: Request, res: Response) => {
-  const invoices = await invoiceService.searchInvoices(req.query);
+    const invoices = await invoiceService.searchInvoices(req.query);
 
-  return apiResponse({
-    res,
-    message: "Invoices found successfully",
-    data: invoices,
+    return apiResponse({
+      res,
+      message: "Invoices found successfully",
+      data: invoices,
+    });
   });
-});
 
-filterInvoices = asyncHandler(async (req: Request, res: Response) => {
-  const invoices = await invoiceService.filterInvoices(req.query);
+  filterInvoices = asyncHandler(async (req: Request, res: Response) => {
+    const invoices = await invoiceService.filterInvoices(req.query);
 
-  return apiResponse({
-    res,
-    message: "Invoices filtered successfully",
-    data: invoices,
+    return apiResponse({
+      res,
+      message: "Invoices filtered successfully",
+      data: invoices,
+    });
   });
-});
+
+  sendPdf = asyncHandler(async (req: Request, res: Response) => {
+    const invoiceId = req.params.id as string;
+    const result = await invoiceService.sendPdfToClient(invoiceId);
+
+    if (!result.success) {
+      throw new AppError({
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        message: result.message,
+      });
+    }
+
+    return apiResponse({
+      res,
+      message: result.message,
+      data: null,
+    });
+  });
 }
-
 
 export const invoiceController = new InvoiceController();
