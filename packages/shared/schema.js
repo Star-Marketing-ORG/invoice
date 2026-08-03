@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePaymentStatusSchema = exports.updatePaymentSchema = exports.createPaymentSchema = exports.paymentStatusSchema = exports.paymentMethodSchema = exports.updateInvoiceStatusSchema = exports.updateInvoiceSchema = exports.createInvoiceSchema = exports.invoiceStatusSchema = exports.updateQuotationStatusSchema = exports.updateQuotationSchema = exports.createQuotationSchema = exports.updateServiceSchema = exports.createServiceSchema = exports.updateCategorySchema = exports.createCategorySchema = exports.updateCustomerSchema = exports.createCustomerSchema = void 0;
+exports.updateProfileSchema = exports.updatePasswordSchema = exports.updatePaymentStatusSchema = exports.updatePaymentSchema = exports.createPaymentSchema = exports.paymentStatusSchema = exports.paymentMethodSchema = exports.updateInvoiceStatusSchema = exports.updateInvoiceSchema = exports.createInvoiceSchema = exports.invoiceStatusSchema = exports.updateQuotationStatusSchema = exports.updateQuotationSchema = exports.createQuotationSchema = exports.updateServiceSchema = exports.createServiceSchema = exports.updateCategorySchema = exports.createCategorySchema = exports.updateCustomerSchema = exports.createCustomerSchema = void 0;
 const zod_1 = require("zod");
 // Customer Schemas
 exports.createCustomerSchema = zod_1.z.object({
@@ -329,5 +329,23 @@ exports.updatePaymentSchema = zod_1.z.object({
 exports.updatePaymentStatusSchema = zod_1.z.object({
     body: zod_1.z.object({
         status: exports.paymentStatusSchema,
+    }),
+});
+exports.updatePasswordSchema = zod_1.z.object({
+    body: zod_1.z
+        .object({
+        currentPassword: zod_1.z.string().min(1, "Current password is required"),
+        newPassword: zod_1.z.string().min(8, "Password must be at least 8 characters"),
+        confirmPassword: zod_1.z.string().min(1, "Confirm password is required"),
+    })
+        .refine((data) => data.newPassword === data.confirmPassword, {
+        message: "Passwords don't match",
+        path: ["confirmPassword"],
+    }),
+});
+exports.updateProfileSchema = zod_1.z.object({
+    body: zod_1.z.object({
+        name: zod_1.z.string().min(1, "Full name is required"),
+        email: zod_1.z.string().email("Please enter a valid email address"),
     }),
 });

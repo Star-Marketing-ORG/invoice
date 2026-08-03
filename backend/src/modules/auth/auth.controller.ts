@@ -3,8 +3,8 @@ import { asyncHandler } from "../../common/utils/asyncHandler";
 import { apiResponse } from "../../common/utils/apiResponse";
 import { authService } from "./auth.service";
 import { setTokenCookie, clearTokenCookie } from "../../common/utils/cookie";
-import { AppError } from "src/common/errors/AppError";
-import { HTTP_STATUS } from "src/common/constants/httpStatus";
+import { AppError } from "../../common/errors/AppError";
+import { HTTP_STATUS } from "../../common/constants/httpStatus";
 
 class AuthController {
   login = asyncHandler(async (req: Request, res: Response) => {

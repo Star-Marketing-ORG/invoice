@@ -32,7 +32,6 @@ describe("Quotation API - Integration Tests", () => {
       });
     customerId = custRes.body.data.id;
 
-    console.log("Customer create response:", custRes.status, custRes.body);
 
     // Create service for testing
     const svcRes = await request(app)

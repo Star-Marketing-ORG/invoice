@@ -3,7 +3,7 @@ import { asyncHandler } from "../../common/utils/asyncHandler";
 import { apiResponse } from "../../common/utils/apiResponse";
 import { quotationService } from "./quotation.service";
 import { HTTP_STATUS } from "../../common/constants/httpStatus";
-import { AppError } from "src/common/errors/AppError";
+import { AppError } from "../../common/errors/AppError";
 
 class QuotationController {
   getAllQuotations = asyncHandler(async (_req: Request, res: Response) => {

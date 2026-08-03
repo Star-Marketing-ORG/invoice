@@ -9,7 +9,7 @@ import { quotationRouter } from "../modules/quotation/quotation.routes";
 import { invoiceRouter } from "../modules/invoice/invoice.routes";
 import { paymentRouter } from "../modules/payment/payment.routes";
 import { dashboardRouter } from "../modules/dashboard/dashboard.route";
-import { notificationRouter } from "src/modules/notification/notification.routes";
+import { notificationRouter } from "../modules/notification/notification.routes";
 
 const router = Router();
 

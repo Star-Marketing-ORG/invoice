@@ -1,7 +1,7 @@
 import { InvoicePdfData, PdfType, SendPdfResult } from "./pdf.types";
-import { logger } from "src/config/logger";
 import { generateInvoicePdf } from "./pdf.template";
 import { emailService } from "../email/email.service";
+import { logger } from "../../config/logger";
 
 // Simple in-memory cache
 const pdfCache = new Map<string, { buffer: Buffer; timestamp: number }>();
