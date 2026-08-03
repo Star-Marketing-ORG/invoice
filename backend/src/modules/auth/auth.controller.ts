@@ -3,12 +3,14 @@ import { asyncHandler } from "../../common/utils/asyncHandler";
 import { apiResponse } from "../../common/utils/apiResponse";
 import { authService } from "./auth.service";
 import { setTokenCookie, clearTokenCookie } from "../../common/utils/cookie";
+import { AppError } from "src/common/errors/AppError";
+import { HTTP_STATUS } from "src/common/constants/httpStatus";
 
 class AuthController {
   login = asyncHandler(async (req: Request, res: Response) => {
     const result = await authService.login(req.body);
 
-    //  Set token in cookie 
+    //  Set token in cookie
     setTokenCookie(res, result.token);
 
     return apiResponse({
@@ -39,6 +41,25 @@ class AuthController {
     return apiResponse({
       res,
       message: result.message,
+    });
+  });
+
+  updatePassword = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new AppError({
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+        message: "User not authenticated",
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    await authService.updatePassword(userId, currentPassword, newPassword);
+
+    return apiResponse({
+      res,
+      message: "Password updated successfully",
+      data: null,
     });
   });
 }

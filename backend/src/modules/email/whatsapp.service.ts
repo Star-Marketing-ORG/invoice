@@ -13,7 +13,11 @@ class WhatsAppService {
     this.baseUrl = `https://graph.facebook.com/${this.apiVersion}/${this.phoneNumberId}/messages`;
   }
 
-  async sendMessage(phone: string, templateName: string, parameters: string[]): Promise<boolean> {
+  async sendMessage(
+    phone: string,
+    templateName: string,
+    parameters: string[],
+  ): Promise<boolean> {
     try {
       let cleanPhone = phone.replace(/[\+\s\-]/g, "");
       if (cleanPhone.length === 10) {
@@ -38,7 +42,7 @@ class WhatsAppService {
           template: {
             name: templateName,
             language: {
-              code: "en_US",
+              code: "en",
             },
             components: [
               {
@@ -51,13 +55,12 @@ class WhatsAppService {
       });
 
       const data = await response.json();
-      console.log("WhatsApp API Response:", JSON.stringify(data, null, 2));
 
       if (response.ok) {
         logger.info(`WhatsApp message sent to ${phone}`);
         return true;
       } else {
-        logger.error(`WhatsApp API error:`, data);
+        logger.error(`WhatsApp API error for ${phone}:`, data?.error?.message || data);
         return false;
       }
     } catch (error) {

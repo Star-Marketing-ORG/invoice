@@ -1,6 +1,6 @@
+import { InvoicePdfData, PdfType, SendPdfResult } from "./pdf.types";
 import { logger } from "src/config/logger";
 import { generateInvoicePdf } from "./pdf.template";
-import { InvoicePdfData, SendPdfResult } from "./pdf.types";
 import { emailService } from "../email/email.service";
 
 // Simple in-memory cache
@@ -8,16 +8,16 @@ const pdfCache = new Map<string, { buffer: Buffer; timestamp: number }>();
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 class PdfService {
-  private getCacheKey(invoiceId: string): string {
-    return `invoice_${invoiceId}`;
+  private getCacheKey(id: string, type: PdfType): string {
+    return `${type}_${id}`;
   }
 
-  private getFromCache(invoiceId: string): Buffer | null {
-    const key = this.getCacheKey(invoiceId);
+  private getFromCache(id: string, type: PdfType): Buffer | null {
+    const key = this.getCacheKey(id, type);
     const cached = pdfCache.get(key);
 
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      logger.info(`PDF cache hit for invoice ${invoiceId}`);
+      logger.info(`PDF cache hit for ${type} ${id}`);
       return cached.buffer;
     }
 
@@ -28,63 +28,65 @@ class PdfService {
     return null;
   }
 
-  private setCache(invoiceId: string, buffer: Buffer): void {
-    const key = this.getCacheKey(invoiceId);
+  private setCache(id: string, type: PdfType, buffer: Buffer): void {
+    const key = this.getCacheKey(id, type);
     pdfCache.set(key, { buffer, timestamp: Date.now() });
-    logger.info(`PDF cached for invoice ${invoiceId}`);
+    logger.info(`PDF cached for ${type} ${id}`);
   }
 
-  async generatePdf(data: InvoicePdfData, invoiceId: string): Promise<Buffer> {
-    // Check cache first
-    const cached = this.getFromCache(invoiceId);
+  async generatePdf(
+    data: InvoicePdfData,
+    id: string,
+    type: PdfType,
+  ): Promise<Buffer> {
+    const cached = this.getFromCache(id, type);
     if (cached) {
       return cached;
     }
 
-    // Generate new PDF
-    const pdfBuffer = await generateInvoicePdf(data);
-
-    // Cache it
-    this.setCache(invoiceId, pdfBuffer);
+    const pdfBuffer = await generateInvoicePdf(data, type);
+    this.setCache(id, type, pdfBuffer);
 
     return pdfBuffer;
   }
 
-  async sendPdfToClient(
+  async sendPdf(
     invoiceData: InvoicePdfData,
-    invoiceId: string,
+    id: string,
+    type: PdfType,
   ): Promise<SendPdfResult> {
     try {
-      // Generate PDF
-      const pdfBuffer = await this.generatePdf(invoiceData, invoiceId);
+      const pdfBuffer = await this.generatePdf(invoiceData, id, type);
 
-      // Send email with attachment
-      const sent = await emailService.sendInvoicePdf({
-        to: invoiceData.customerEmail,
-        customerName: invoiceData.customerName,
-        invoiceNumber: invoiceData.invoiceNumber,
-        total: invoiceData.total.toLocaleString("en-IN"),
-        remainingBalance: invoiceData.remainingBalance.toLocaleString("en-IN"),
-        dueDate: invoiceData.dueDate,
-        pdfBuffer: pdfBuffer,
-      });
+      // Send email in background
+      emailService
+        .sendInvoicePdf({
+          to: invoiceData.customerEmail,
+          customerName: invoiceData.customerName,
+          invoiceNumber: invoiceData.invoiceNumber,
+          total: invoiceData.total.toLocaleString("en-IN"),
+          remainingBalance:
+            invoiceData.remainingBalance.toLocaleString("en-IN"),
+          dueDate: invoiceData.dueDate,
+          pdfBuffer: pdfBuffer,
+          type: type,
+        })
+        .then((sent) => {
+          if (sent) {
+            logger.info(`${type} PDF sent to ${invoiceData.customerEmail}`);
+          }
+        });
 
-      if (sent) {
-        // Clear cache after successful send
-        pdfCache.delete(this.getCacheKey(invoiceId));
-        return { success: true, message: "Invoice PDF sent successfully" };
-      }
-
-      return { success: false, message: "Failed to send email" };
+      return { success: true, message: `${type} PDF is being sent` };
     } catch (error) {
-      logger.error("Error sending PDF:", error);
-      return { success: false, message: "Error generating or sending PDF" };
+      logger.error(`Error sending ${type} PDF:`, error);
+      return { success: false, message: `Error generating ${type} PDF` };
     }
   }
 
-  clearCache(invoiceId?: string): void {
-    if (invoiceId) {
-      pdfCache.delete(this.getCacheKey(invoiceId));
+  clearCache(id?: string, type?: PdfType): void {
+    if (id && type) {
+      pdfCache.delete(this.getCacheKey(id, type));
     } else {
       pdfCache.clear();
     }

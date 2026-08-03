@@ -132,9 +132,20 @@ class EmailService {
     remainingBalance: string;
     dueDate: string;
     pdfBuffer: Buffer;
+    type?: "invoice" | "quotation"; // ADD THIS
   }): Promise<boolean> {
     try {
-      const subject = `Invoice #${data.invoiceNumber} - Invoice Ready`;
+      const isQuotation = data.type === "quotation";
+      const docType = isQuotation ? "Quotation" : "Invoice";
+      const docNumber = isQuotation
+        ? `Quotation #${data.invoiceNumber}`
+        : `Invoice #${data.invoiceNumber}`;
+      const dateLabel = isQuotation ? "Expiry Date" : "Due Date";
+      const filename = isQuotation
+        ? `Quotation_${data.invoiceNumber}.pdf`
+        : `Invoice_${data.invoiceNumber}.pdf`;
+
+      const subject = `${data.invoiceNumber} - Invoice Ready`;
 
       const html = `
         <!DOCTYPE html>
@@ -154,18 +165,18 @@ class EmailService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>Invoice Attached</h1>
+              <h1>${docType} Attached</h1>
             </div>
             <div class="content">
               <p>Dear <strong>${data.customerName}</strong>,</p>
-              <p>Please find your invoice attached to this email.</p>
+              <p>Please find your ${docType.toLowerCase()} attached to this email.</p>
               <div class="details">
-                <p><strong>Invoice:</strong> #${data.invoiceNumber}</p>
+                <p><strong>${docNumber}</strong></p>
                 <p><strong>Amount:</strong> ₹${data.total}</p>
-                <p><strong>Remaining Balance:</strong> ₹${data.remainingBalance}</p>
-                <p><strong>Due Date:</strong> ${data.dueDate}</p>
+                ${!isQuotation ? `<p><strong>Remaining Balance:</strong> ₹${data.remainingBalance}</p>` : ""}
+                <p><strong>${dateLabel}:</strong> ${data.dueDate}</p>
               </div>
-              <div class="amount">₹${data.remainingBalance}</div>
+              <div class="amount">₹${isQuotation ? data.total : data.remainingBalance}</div>
               <p>Thank you for your business!</p>
               <p>Invoice Ready Team</p>
             </div>
@@ -184,7 +195,7 @@ class EmailService {
         html: html,
         attachments: [
           {
-            filename: `Invoice_${data.invoiceNumber}.pdf`,
+            filename: filename,
             content: data.pdfBuffer,
             contentType: "application/pdf",
           },
@@ -192,14 +203,11 @@ class EmailService {
       });
 
       logger.info(
-        `Invoice PDF sent to ${data.to} for invoice ${data.invoiceNumber}`,
+        `${docType} PDF sent to ${data.to} for ${data.invoiceNumber}`,
       );
       return true;
     } catch (error) {
-      logger.error(
-        `Failed to send invoice PDF for ${data.invoiceNumber}:`,
-        error,
-      );
+      logger.error(`Failed to send PDF for ${data.invoiceNumber}:`, error);
       return false;
     }
   }

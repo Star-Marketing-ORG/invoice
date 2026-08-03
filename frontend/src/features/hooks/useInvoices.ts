@@ -115,3 +115,17 @@ export function useUpdateInvoiceStatus() {
     },
   });
 }
+
+export function useSendInvoicePdf() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => invoiceApi.sendPdf(id),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+      toast.success(data.message || "Invoice PDF sent successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to send PDF");
+    },
+  });
+}

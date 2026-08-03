@@ -128,3 +128,17 @@ export function useUpdateQuotationStatus() {
     },
   });
 }
+
+export function useSendQuotationPdf() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => quotationApi.sendPdf(id),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: quotationKeys.all });
+      toast.success(data.message || "Quotation PDF sent successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to send PDF");
+    },
+  });
+}

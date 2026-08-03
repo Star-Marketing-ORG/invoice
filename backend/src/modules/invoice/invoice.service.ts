@@ -344,7 +344,7 @@ export class InvoiceService {
       termsConditions: invoice.termsConditions || "",
     };
 
-    const result = await pdfService.sendPdfToClient(pdfData, invoiceId);
+    const result = await pdfService.sendPdf(pdfData, invoiceId, "invoice"); // Pass type
     return result;
   }
 }

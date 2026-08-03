@@ -85,3 +85,19 @@ export function useDeleteUser() {
     },
   });
 }
+
+export function useUpdatePassword() {
+  return useMutation({
+    mutationFn: (data: {
+      currentPassword: string;
+      newPassword: string;
+      confirmPassword: string;
+    }) => userApi.updatePassword(data),
+    onSuccess: (data) => {
+      toast.success(data.message || "Password updated successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update password");
+    },
+  });
+}

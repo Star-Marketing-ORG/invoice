@@ -1,4 +1,5 @@
-import { TbPlus } from "react-icons/tb";
+import { useState } from "react";
+import { TbPlus, TbFileTypePdf } from "react-icons/tb";
 import { formatCurrency, formatDate } from "../../libs/utils";
 import { QuotationStatusBadge } from "../../components/ui/QuotationStatusBadge";
 import { Table } from "../../components/ui/Table";
@@ -8,6 +9,8 @@ import {
   useQuotations,
   useSearchQuotations,
   useFilterQuotations,
+  useSendQuotationPdf,
+  useUpdateQuotationStatus,
 } from "../../features/hooks/useQuotations";
 import { Button } from "../../components/ui/ButtonProps";
 
@@ -25,6 +28,27 @@ export default function Quotations() {
     searchDataHook: useSearchQuotations,
     filterDataHook: useFilterQuotations,
   });
+
+  const sendPdf = useSendQuotationPdf();
+  const updateStatus = useUpdateQuotationStatus();
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  const handleSendPdf = async (quotation: any) => {
+    setSendingId(quotation.id);
+    try {
+      await sendPdf.mutateAsync(quotation.id);
+
+      // Auto update status to SENT if currently DRAFT
+      if (quotation.status === "DRAFT") {
+        await updateStatus.mutateAsync({
+          id: quotation.id,
+          status: "SENT",
+        });
+      }
+    } finally {
+      setSendingId(null);
+    }
+  };
 
   const columns = [
     {
@@ -75,6 +99,39 @@ export default function Quotations() {
       header: "Status",
       sortable: true,
       cell: (info: any) => <QuotationStatusBadge status={info.getValue()} />,
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: (info: any) => {
+        const quotation = info.row.original;
+        const isSending = sendingId === quotation.id;
+
+        return (
+          <div onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => handleSendPdf(quotation)}
+              disabled={isSending}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200
+                bg-brand text-white border border-border hover:bg-red-50 hover:border-red-200 hover:text-red-600
+                disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Send PDF to client"
+            >
+              {isSending ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <TbFileTypePdf size={16} />
+                  Send PDF
+                </>
+              )}
+            </button>
+          </div>
+        );
+      },
     },
   ];
 

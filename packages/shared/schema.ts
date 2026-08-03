@@ -123,7 +123,7 @@ export const createServiceSchema = z.object({
       .max(100, "Tax rate cannot exceed 100")
       .optional(),
   }),
-}); 
+});
 
 export const updateServiceSchema = z.object({
   body: z.object({
@@ -365,7 +365,6 @@ export const paymentStatusSchema = z.enum([
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 
-
 export const createPaymentSchema = z.object({
   body: z.object({
     invoiceId: z.string().min(1, "Invoice is required"),
@@ -413,5 +412,25 @@ export const updatePaymentSchema = z.object({
 export const updatePaymentStatusSchema = z.object({
   body: z.object({
     status: paymentStatusSchema,
+  }),
+});
+
+export const updatePasswordSchema = z.object({
+  body: z
+    .object({
+      currentPassword: z.string().min(1, "Current password is required"),
+      newPassword: z.string().min(8, "Password must be at least 8 characters"),
+      confirmPassword: z.string().min(1, "Confirm password is required"),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: "Passwords don't match",
+      path: ["confirmPassword"],
+    }),
+});
+
+export const updateProfileSchema = z.object({
+  body: z.object({
+    name: z.string().min(1, "Full name is required"),
+    email: z.string().email("Please enter a valid email address"),
   }),
 });

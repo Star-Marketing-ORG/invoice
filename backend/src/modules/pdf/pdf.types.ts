@@ -1,3 +1,5 @@
+export type PdfType = "invoice" | "quotation";
+
 export interface InvoicePdfData {
   invoiceNumber: string;
   customerName: string;

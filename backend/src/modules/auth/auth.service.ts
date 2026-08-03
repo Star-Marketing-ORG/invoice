@@ -1,9 +1,10 @@
 import { AppError } from "../../common/errors/AppError";
-import { comparePassword } from "../../common/utils/password";
+import { comparePassword, hashPassword } from "../../common/utils/password";
 import { generateToken } from "../../common/utils/cookie";
 import { userRepository } from "../users/user.repository";
 import { HTTP_STATUS } from "../../common/constants/httpStatus";
 import { MESSAGES } from "../../common/constants/messages";
+import { prisma } from "../../database/client";
 
 interface LoginDto {
   email: string;
@@ -81,6 +82,32 @@ class AuthService {
     return {
       message: "Logged out successfully",
     };
+  }
+
+  async updatePassword(userId: string, currentPassword: string, newPassword: string) {
+    
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    
+    if (!user) {
+      throw new AppError({ 
+        statusCode: HTTP_STATUS.NOT_FOUND, 
+        message: "User not found" 
+      });
+    }
+
+    const isPasswordValid = await comparePassword(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new AppError({ 
+        statusCode: HTTP_STATUS.BAD_REQUEST, 
+        message: "Current password is incorrect" 
+      });
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
   }
 }
 

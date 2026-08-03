@@ -3,6 +3,7 @@ import { asyncHandler } from "../../common/utils/asyncHandler";
 import { apiResponse } from "../../common/utils/apiResponse";
 import { quotationService } from "./quotation.service";
 import { HTTP_STATUS } from "../../common/constants/httpStatus";
+import { AppError } from "src/common/errors/AppError";
 
 class QuotationController {
   getAllQuotations = asyncHandler(async (_req: Request, res: Response) => {
@@ -97,6 +98,24 @@ class QuotationController {
       res,
       message: "Quotations filtered successfully",
       data: quotations,
+    });
+  });
+
+  sendPdf = asyncHandler(async (req: Request, res: Response) => {
+    const quotationId = req.params.id as string;
+    const result = await quotationService.sendPdfToClient(quotationId);
+
+    if (!result.success) {
+      throw new AppError({
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        message: result.message,
+      });
+    }
+
+    return apiResponse({
+      res,
+      message: result.message,
+      data: null,
     });
   });
 }

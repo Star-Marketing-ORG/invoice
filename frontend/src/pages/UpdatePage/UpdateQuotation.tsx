@@ -14,6 +14,7 @@ import {
 import type { UpdateQuotationDto } from "@invoice/shared/types";
 import {
   useQuotation,
+  useSendQuotationPdf,
   useUpdateQuotation,
   useUpdateQuotationStatus,
 } from "../../features/hooks/useQuotations";
@@ -126,6 +127,8 @@ export default function UpdateQuotation() {
     serviceSearch.global ? searchedServices : servicesData,
   );
 
+  const sendPdf = useSendQuotationPdf();
+
   // Populate form
   useEffect(() => {
     if (quotation?.data) {
@@ -226,6 +229,7 @@ export default function UpdateQuotation() {
     setFormData((prev) => ({ ...prev, customerId: "" }));
 
   // ─── Status ───────────────────────────────────
+  // Update handleStatusChange:
   const handleStatusChange = (newStatus: string) => {
     const result = updateQuotationStatusSchema.shape.body.safeParse({
       status: newStatus,
@@ -239,11 +243,19 @@ export default function UpdateQuotation() {
       return;
     }
     setErrors({});
+
     updateStatus(
       { id: id!, status: newStatus },
       {
-        onSuccess: () =>
-          setFormData((prev) => ({ ...prev, status: newStatus })),
+        onSuccess: async () => {
+          setFormData((prev) => ({ ...prev, status: newStatus }));
+
+          if (newStatus === "SENT" && quotation?.data?.status === "DRAFT") {
+            try {
+              await sendPdf.mutateAsync(id!);
+            } catch (error) {}
+          }
+        },
       },
     );
   };
@@ -472,7 +484,7 @@ export default function UpdateQuotation() {
                 value={formData.notes}
                 onChange={(e) => updateField("notes", e.target.value)}
                 placeholder="Any notes for the customer..."
-                rows={2}
+                rows={4}
                 className="w-full px-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all resize-none"
               />
             </FormField>
@@ -481,7 +493,7 @@ export default function UpdateQuotation() {
                 value={formData.termsConditions}
                 onChange={(e) => updateField("termsConditions", e.target.value)}
                 placeholder="Terms and conditions..."
-                rows={2}
+                rows={8}
                 className="w-full px-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all resize-none"
               />
             </FormField>

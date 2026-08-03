@@ -311,10 +311,6 @@ export default function NewInvoice() {
         })),
     };
 
-    // 🔍 LOG BEFORE ZOD
-    console.log("=== DATA TO VALIDATE ===");
-    console.log(JSON.stringify(dataToValidate, null, 2));
-
     const result = createInvoiceSchema.shape.body.safeParse(dataToValidate);
 
     if (!result.success) {

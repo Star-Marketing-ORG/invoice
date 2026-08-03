@@ -16,6 +16,7 @@ import {
 import type { UpdateInvoiceDto } from "@invoice/shared/types";
 import {
   useInvoice,
+  useSendInvoicePdf,
   useUpdateInvoice,
   useUpdateInvoiceStatus,
 } from "../../features/hooks/useInvoices";
@@ -269,6 +270,9 @@ export default function UpdateInvoice() {
   };
 
   // ─── Status ───────────────────────────────────
+  const sendPdf = useSendInvoicePdf();
+
+  // Update handleStatusChange:
   const handleStatusChange = (newStatus: string) => {
     const result = updateInvoiceStatusSchema.shape.body.safeParse({
       status: newStatus,
@@ -282,11 +286,22 @@ export default function UpdateInvoice() {
       return;
     }
     setErrors({});
+
     updateStatus(
       { id: id!, status: newStatus },
       {
-        onSuccess: () =>
-          setFormData((prev) => ({ ...prev, status: newStatus })),
+        onSuccess: async () => {
+          setFormData((prev) => ({ ...prev, status: newStatus }));
+
+          // Auto send PDF ONLY when changing from DRAFT to SENT
+          if (newStatus === "SENT" && invoice?.data?.status === "DRAFT") {
+            try {
+              await sendPdf.mutateAsync(id!);
+            } catch (error) {
+              // PDF send failed but status already updated
+            }
+          }
+        },
       },
     );
   };
@@ -627,7 +642,7 @@ export default function UpdateInvoice() {
                 value={formData.notes}
                 onChange={(e) => updateField("notes", e.target.value)}
                 placeholder="Any notes for the customer..."
-                rows={2}
+                rows={4}
                 disabled={isFromQuotation}
                 className="w-full px-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all resize-none disabled:opacity-50 disabled:cursor-not-allowed"
               />
@@ -637,7 +652,7 @@ export default function UpdateInvoice() {
                 value={formData.termsConditions}
                 onChange={(e) => updateField("termsConditions", e.target.value)}
                 placeholder="Terms and conditions..."
-                rows={2}
+                rows={8}
                 disabled={isFromQuotation}
                 className="w-full px-4 py-3 bg-surface-hover rounded-2xl text-sm text-text-primary placeholder:text-text-muted border-2 border-transparent focus:border-brand/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all resize-none disabled:opacity-50 disabled:cursor-not-allowed"
               />

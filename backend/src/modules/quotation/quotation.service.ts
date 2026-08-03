@@ -10,6 +10,7 @@ import { Quotation, QuotationStatus } from "@prisma/client";
 import { prisma } from "../../database/client";
 import { Search } from "../../common/utils/search";
 import { Filter } from "../../common/utils/filter";
+import { pdfService } from "../pdf/pdf.service";
 
 export class QuotationService {
   async generateQuotationNumber(): Promise<string> {
@@ -259,6 +260,57 @@ export class QuotationService {
         limit: query.limit,
       },
     );
+  }
+
+  async sendPdfToClient(quotationId: string) {
+    const quotation = await quotationRepository.findById(quotationId);
+
+    if (!quotation) {
+      throw new AppError({
+        statusCode: HTTP_STATUS.NOT_FOUND,
+        message: "Quotation not found",
+      });
+    }
+
+    if (!quotation.customer?.email) {
+      throw new AppError({
+        statusCode: HTTP_STATUS.BAD_REQUEST,
+        message: "Customer email not found",
+      });
+    }
+
+    const pdfData = {
+      invoiceNumber: quotation.quotationNumber,
+      customerName: quotation.customer.name,
+      customerEmail: quotation.customer.email,
+      customerPhone: quotation.customer.phone || "",
+      customerAddress: quotation.customer.address || "",
+      issueDate: new Date(quotation.issueDate).toLocaleDateString("en-IN"),
+      dueDate: quotation.expiryDate
+        ? new Date(quotation.expiryDate).toLocaleDateString("en-IN")
+        : "N/A",
+      status: quotation.status,
+      items: quotation.items.map((item: any) => ({
+        serviceName: item.service?.name || "Unknown Service",
+        description: item.description || "",
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice),
+        taxRate: Number(item.taxRate),
+        discount: Number(item.discount),
+        total: Number(item.total),
+      })),
+      subtotal: Number(quotation.subtotal),
+      discount: Number(quotation.discount),
+      tax: Number(quotation.tax),
+      total: Number(quotation.total),
+      totalPaid: 0,
+      remainingBalance: Number(quotation.total),
+      notes: quotation.notes || "",
+      termsConditions: quotation.termsConditions || "",
+    };
+
+    const result = await pdfService.sendPdf(pdfData, quotationId, "quotation");
+    return result;
   }
 }
 

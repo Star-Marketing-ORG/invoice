@@ -8,6 +8,7 @@ import { Pagination } from "../../common/utils/pagination";
 import { Service } from "@prisma/client";
 import { Search } from "../../common/utils/search";
 import { Filter } from "../../common/utils/filter";
+import { pdfService } from "../pdf/pdf.service";
 
 export class ServiceService {
   async generateServiceCode(): Promise<string> {

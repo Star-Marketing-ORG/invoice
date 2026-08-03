@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatCurrency, formatDate } from "../../libs/utils";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { Table } from "../../components/ui/Table";
@@ -6,7 +7,10 @@ import {
   useInvoices,
   useSearchInvoices,
   useFilterInvoices,
+  useSendInvoicePdf,
+  useUpdateInvoiceStatus,
 } from "../../features/hooks/useInvoices";
+import { TbFileTypePdf, TbSend } from "react-icons/tb";
 
 const filterLabels: Record<string, string> = {
   status: "Status",
@@ -22,6 +26,27 @@ export default function Invoices() {
     searchDataHook: useSearchInvoices,
     filterDataHook: useFilterInvoices,
   });
+
+  const sendPdf = useSendInvoicePdf();
+  const updateStatus = useUpdateInvoiceStatus();
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  const handleSendPdf = async (invoice: any) => {
+    setSendingId(invoice.id);
+    try {
+      await sendPdf.mutateAsync(invoice.id);
+      
+      // Auto update status to SENT if currently DRAFT
+      if (invoice.status === "DRAFT") {
+        await updateStatus.mutateAsync({
+          id: invoice.id,
+          status: "SENT",
+        });
+      }
+    } finally {
+      setSendingId(null);
+    }
+  };
 
   const columns = [
     {
@@ -79,6 +104,39 @@ export default function Invoices() {
       header: "Status",
       sortable: true,
       cell: (info: any) => <StatusBadge status={info.getValue()} />,
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: (info: any) => {
+        const invoice = info.row.original;
+        const isSending = sendingId === invoice.id;
+
+        return (
+          <div onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => handleSendPdf(invoice)}
+              disabled={isSending}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200
+                bg-brand text-white border border-border hover:bg-red-50 hover:border-red-200 hover:text-red-600
+                disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Send PDF to client"
+            >
+              {isSending ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <TbFileTypePdf size={16} />
+                  Send PDF
+                </>
+              )}
+            </button>
+          </div>
+        );
+      },
     },
   ];
 

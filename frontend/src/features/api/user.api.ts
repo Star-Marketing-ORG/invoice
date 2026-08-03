@@ -1,9 +1,5 @@
 import axiosInstance from "../../utils/axios";
-import type {
-  CreateUserDto,
-  UpdateUserDto,
-  User,
-} from "@invoice/shared/types";
+import type { CreateUserDto, UpdateUserDto, User } from "@invoice/shared/types";
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -41,5 +37,14 @@ export const userApi = {
   delete: (id: string) =>
     axiosInstance
       .delete<ApiResponse<null>>(`/users/${id}`)
+      .then((res) => res.data),
+
+  updatePassword: (data: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) =>
+    axiosInstance
+      .patch<ApiResponse<null>>("/auth/update-password", data)
       .then((res) => res.data),
 };

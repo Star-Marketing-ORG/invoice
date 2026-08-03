@@ -9,6 +9,7 @@ interface Customer {
   id: string;
   name: string;
   phone: string;
+  email: string;
 }
 
 function extractListData<T>(response: any): T[] {
@@ -53,6 +54,7 @@ export function CustomerSelector({
               {customer?.name || "Loading..."}
             </p>
             <p className="text-xs text-text-muted">{customer?.phone || ""}</p>
+            <p className="text-xs text-text-muted">{customer?.email || ""}</p>
           </div>
           {!readOnly && (
             <button

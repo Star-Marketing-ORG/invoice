@@ -1,5 +1,9 @@
-import axiosInstance from '../../utils/axios';
-import type { Invoice, CreateInvoiceDto, UpdateInvoiceDto } from '@invoice/shared/types';
+import axiosInstance from "../../utils/axios";
+import type {
+  Invoice,
+  CreateInvoiceDto,
+  UpdateInvoiceDto,
+} from "@invoice/shared/types";
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -16,7 +20,7 @@ interface ApiResponse<T> {
 export const invoiceApi = {
   getAll: (params?: { cursor?: string; limit?: string }) =>
     axiosInstance
-      .get<ApiResponse<PaginatedResponse<Invoice>>>('/invoice', { params })
+      .get<ApiResponse<PaginatedResponse<Invoice>>>("/invoice", { params })
       .then((res) => res.data),
 
   getById: (id: string) =>
@@ -26,17 +30,21 @@ export const invoiceApi = {
 
   search: (params: { q?: string; cursor?: string; limit?: string }) =>
     axiosInstance
-      .get<ApiResponse<PaginatedResponse<Invoice>>>('/invoice/search', { params })
+      .get<
+        ApiResponse<PaginatedResponse<Invoice>>
+      >("/invoice/search", { params })
       .then((res) => res.data),
 
   filter: (params: Record<string, string>) =>
     axiosInstance
-      .get<ApiResponse<PaginatedResponse<Invoice>>>('/invoice/filter', { params })
+      .get<
+        ApiResponse<PaginatedResponse<Invoice>>
+      >("/invoice/filter", { params })
       .then((res) => res.data),
 
   create: (data: CreateInvoiceDto) =>
     axiosInstance
-      .post<ApiResponse<Invoice>>('/invoice', data)
+      .post<ApiResponse<Invoice>>("/invoice", data)
       .then((res) => res.data),
 
   update: (id: string, data: UpdateInvoiceDto) =>
@@ -52,5 +60,10 @@ export const invoiceApi = {
   updateStatus: (id: string, status: string) =>
     axiosInstance
       .patch<ApiResponse<Invoice>>(`/invoice/${id}/status`, { status })
+      .then((res) => res.data),
+
+  sendPdf: (id: string) =>
+    axiosInstance
+      .post<ApiResponse<null>>(`/invoice/${id}/send-pdf`)
       .then((res) => res.data),
 };

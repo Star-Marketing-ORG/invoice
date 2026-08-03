@@ -1,8 +1,8 @@
 // invoice/pdf/pdf.template.ts
 import PDFDocument from "pdfkit";
-import { InvoicePdfData } from "./pdf.types";
+import { InvoicePdfData, PdfType } from "./pdf.types";
 
-export function generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
+export function generateInvoicePdf(data: InvoicePdfData, type: PdfType = "invoice"): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({
@@ -27,6 +27,12 @@ export function generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
       const success = "#059669";
       const danger = "#DC2626";
 
+      // Dynamic labels based on type
+      const titleText = type === "invoice" ? "INVOICE" : "QUOTATION";
+      const detailsTitle = type === "invoice" ? "INVOICE DETAILS" : "QUOTATION DETAILS";
+      const numberLabel = type === "invoice" ? "Invoice No" : "Quotation No";
+      const dateLabel = type === "invoice" ? "Due Date" : "Expiry Date";
+
       const pageWidth = doc.page.width;
       const margin = 45;
 
@@ -47,14 +53,14 @@ export function generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
         .fillColor(primary)
         .text("Smart Invoicing for Modern Businesses", margin, 68);
 
-      // Invoice Title
+      // Title (INVOICE or QUOTATION)
       doc
         .fontSize(26)
         .font("Helvetica-Bold")
         .fillColor(white)
-        .text("INVOICE", pageWidth - margin - 200, 30, { align: "right", width: 200 });
+        .text(titleText, pageWidth - margin - 200, 30, { align: "right", width: 200 });
 
-      // Invoice Number in header
+      // Number in header
       doc
         .fontSize(11)
         .font("Helvetica")
@@ -85,7 +91,7 @@ export function generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
         doc.text(data.customerAddress);
       }
 
-      // Right: Invoice Details Box
+      // Right: Details Box
       const boxX = pageWidth - margin - 220;
       const boxWidth = 220;
       
@@ -96,13 +102,13 @@ export function generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
         .fontSize(9)
         .font("Helvetica-Bold")
         .fillColor(white)
-        .text("INVOICE DETAILS", boxX + 10, metaY + 7);
+        .text(detailsTitle, boxX + 10, metaY + 7);
 
       const details = [
-        { label: "Invoice No", value: data.invoiceNumber },
+        { label: numberLabel, value: data.invoiceNumber },
         { label: "Issue Date", value: data.issueDate },
-        { label: "Due Date", value: data.dueDate },
-        { label: "Status", value: data.status, color: data.status === "OVERDUE" ? danger : success },
+        { label: dateLabel, value: data.dueDate },
+        { label: "Status", value: data.status, color: data.status === "OVERDUE" || data.status === "EXPIRED" ? danger : success },
       ];
 
       let detailY = metaY + 35;
@@ -122,11 +128,11 @@ export function generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
       const tableTop = metaY + 130;
       const colX = margin;
       const colWidths = {
-        item: 180,
-        qty: 55,
-        price: 80,
-        tax: 60,
-        discount: 70,
+        item: 195,
+        qty: 40,
+        price: 75,
+        tax: 50,
+        discount: 55,
         total: 90,
       };
 
@@ -140,43 +146,42 @@ export function generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
       };
 
       // Table Header
-      doc.rect(margin, tableTop, pageWidth - margin * 2, 28).fill(dark);
+      doc.rect(margin, tableTop, pageWidth - margin * 2, 25).fill(dark);
 
-      const headerY = tableTop + 8;
-      doc.fontSize(8).font("Helvetica-Bold").fillColor(white);
-      doc.text("SERVICE / DESCRIPTION", colPositions.item + 5, headerY);
+      const headerY = tableTop + 7;
+      doc.fontSize(7.5).font("Helvetica-Bold").fillColor(white);
+      doc.text("SERVICE / DESCRIPTION", colPositions.item + 3, headerY);
       doc.text("QTY", colPositions.qty, headerY, { align: "center", width: colWidths.qty });
-      doc.text("UNIT PRICE", colPositions.price, headerY, { align: "right", width: colWidths.price });
-      doc.text("TAX", colPositions.tax, headerY, { align: "center", width: colWidths.tax });
-      doc.text("DISC.", colPositions.discount, headerY, { align: "right", width: colWidths.discount });
+      doc.text("PRICE", colPositions.price, headerY, { align: "right", width: colWidths.price });
+      doc.text("TAX %", colPositions.tax, headerY, { align: "center", width: colWidths.tax });
+      doc.text("DISC %", colPositions.discount, headerY, { align: "center", width: colWidths.discount });
       doc.text("TOTAL", colPositions.total, headerY, { align: "right", width: colWidths.total });
 
       // Table Rows
-      let rowY = tableTop + 32;
+      let rowY = tableTop + 28;
       doc.font("Helvetica").fontSize(8);
 
       data.items.forEach((item, index) => {
         const bgColor = index % 2 === 0 ? white : lightGray;
-        const rowHeight = 22;
+        const rowHeight = 20;
 
         doc.rect(margin, rowY, pageWidth - margin * 2, rowHeight).fill(bgColor);
 
         doc.fillColor(dark);
-        doc.font("Helvetica-Bold").text(item.serviceName, colPositions.item + 5, rowY + 5, { width: colWidths.item - 10 });
-        doc.font("Helvetica").text(item.quantity.toString(), colPositions.qty, rowY + 5, { align: "center", width: colWidths.qty });
-        doc.text(`₹${item.unitPrice.toLocaleString("en-IN")}`, colPositions.price, rowY + 5, { align: "right", width: colWidths.price });
-        doc.text(`${item.taxRate}%`, colPositions.tax, rowY + 5, { align: "center", width: colWidths.tax });
+        doc.font("Helvetica-Bold").text(item.serviceName, colPositions.item + 3, rowY + 4, { width: colWidths.item - 6 });
+        doc.font("Helvetica").text(item.quantity.toString(), colPositions.qty, rowY + 4, { align: "center", width: colWidths.qty });
+        doc.text(`₹${item.unitPrice.toLocaleString("en-IN")}`, colPositions.price, rowY + 4, { align: "right", width: colWidths.price });
+        doc.text(`${item.taxRate}%`, colPositions.tax, rowY + 4, { align: "center", width: colWidths.tax });
 
         if (item.discount > 0) {
-          doc.fillColor(danger).text(`-₹${item.discount.toLocaleString("en-IN")}`, colPositions.discount, rowY + 5, { align: "right", width: colWidths.discount });
+          doc.fillColor(danger).text(`${item.discount}%`, colPositions.discount, rowY + 4, { align: "center", width: colWidths.discount });
         } else {
-          doc.fillColor(gray).text("—", colPositions.discount, rowY + 5, { align: "right", width: colWidths.discount });
+          doc.fillColor(gray).text("—", colPositions.discount, rowY + 4, { align: "center", width: colWidths.discount });
         }
 
         doc.fillColor(dark).font("Helvetica-Bold")
-          .text(`₹${item.total.toLocaleString("en-IN")}`, colPositions.total, rowY + 5, { align: "right", width: colWidths.total });
+          .text(`₹${item.total.toLocaleString("en-IN")}`, colPositions.total, rowY + 4, { align: "right", width: colWidths.total });
 
-        // Border bottom
         doc.moveTo(margin, rowY + rowHeight).lineTo(pageWidth - margin, rowY + rowHeight).stroke(border);
 
         rowY += rowHeight;
@@ -214,13 +219,15 @@ export function generateInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
 
       addTotalLine("Total", `₹${data.total.toLocaleString("en-IN")}`, true, dark);
 
-      // Paid & Balance
-      rowY += 10;
-      doc.moveTo(totalsX, rowY).lineTo(pageWidth - margin, rowY).stroke(border);
-      rowY += 8;
+      // Paid & Balance (only for invoices)
+      if (type === "invoice") {
+        rowY += 10;
+        doc.moveTo(totalsX, rowY).lineTo(pageWidth - margin, rowY).stroke(border);
+        rowY += 8;
 
-      addTotalLine("Paid", `₹${data.totalPaid.toLocaleString("en-IN")}`, false, success);
-      addTotalLine("Balance Due", `₹${data.remainingBalance.toLocaleString("en-IN")}`, true, danger);
+        addTotalLine("Paid", `₹${data.totalPaid.toLocaleString("en-IN")}`, false, success);
+        addTotalLine("Balance Due", `₹${data.remainingBalance.toLocaleString("en-IN")}`, true, danger);
+      }
 
       // ===== NOTES & TERMS =====
       rowY += 20;

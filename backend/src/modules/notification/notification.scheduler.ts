@@ -7,7 +7,7 @@ import { emailService } from "../email/email.service";
 import { whatsappService } from "../email/whatsapp.service";
 
 export class NotificationScheduler {
-  private cronExpression = "* * * * *";
+  private cronExpression = "0 4 * * *";
 
   public startScheduler() {
     logger.info("Notification scheduler initialized");

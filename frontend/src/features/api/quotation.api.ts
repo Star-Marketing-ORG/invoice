@@ -1,5 +1,9 @@
-import axiosInstance from '../../utils/axios';
-import type { Quotation, CreateQuotationDto, UpdateQuotationDto } from '@invoice/shared/types';
+import axiosInstance from "../../utils/axios";
+import type {
+  Quotation,
+  CreateQuotationDto,
+  UpdateQuotationDto,
+} from "@invoice/shared/types";
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -16,7 +20,7 @@ interface ApiResponse<T> {
 export const quotationApi = {
   getAll: (params?: { cursor?: string; limit?: string }) =>
     axiosInstance
-      .get<ApiResponse<PaginatedResponse<Quotation>>>('/quotation', { params })
+      .get<ApiResponse<PaginatedResponse<Quotation>>>("/quotation", { params })
       .then((res) => res.data),
 
   getById: (id: string) =>
@@ -24,19 +28,28 @@ export const quotationApi = {
       .get<ApiResponse<Quotation>>(`/quotation/${id}`)
       .then((res) => res.data),
 
-search: (params: { q?: string; cursor?: string; limit?: string; status?: string }) =>
+  search: (params: {
+    q?: string;
+    cursor?: string;
+    limit?: string;
+    status?: string;
+  }) =>
     axiosInstance
-      .get<ApiResponse<PaginatedResponse<Quotation>>>('/quotation/search', { params })
+      .get<
+        ApiResponse<PaginatedResponse<Quotation>>
+      >("/quotation/search", { params })
       .then((res) => res.data),
 
   filter: (params: Record<string, string>) =>
     axiosInstance
-      .get<ApiResponse<PaginatedResponse<Quotation>>>('/quotation/filter', { params })
+      .get<
+        ApiResponse<PaginatedResponse<Quotation>>
+      >("/quotation/filter", { params })
       .then((res) => res.data),
 
   create: (data: CreateQuotationDto) =>
     axiosInstance
-      .post<ApiResponse<Quotation>>('/quotation', data)
+      .post<ApiResponse<Quotation>>("/quotation", data)
       .then((res) => res.data),
 
   update: (id: string, data: UpdateQuotationDto) =>
@@ -52,5 +65,10 @@ search: (params: { q?: string; cursor?: string; limit?: string; status?: string 
   updateStatus: (id: string, status: string) =>
     axiosInstance
       .patch<ApiResponse<Quotation>>(`/quotation/${id}/status`, { status })
+      .then((res) => res.data),
+
+  sendPdf: (id: string) =>
+    axiosInstance
+      .post<ApiResponse<null>>(`/quotation/${id}/send-pdf`)
       .then((res) => res.data),
 };
