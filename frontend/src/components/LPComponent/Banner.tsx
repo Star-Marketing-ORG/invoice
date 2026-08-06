@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   HiDocumentText,
   HiUserGroup,
@@ -11,6 +12,8 @@ import {
 } from "react-icons/hi";
 
 const Banner = () => {
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+
   const highlights = [
     { icon: HiDocumentText, label: "Invoice Management" },
     { icon: HiClipboardList, label: "Quotation Management" },
@@ -21,6 +24,7 @@ const Banner = () => {
 
   const cards = [
     {
+      id: 0,
       icon: HiDocumentText,
       iconBg: "bg-blue-50",
       iconColor: "text-blue-600",
@@ -30,8 +34,12 @@ const Banner = () => {
       badge: "Paid",
       badgeBg: "bg-emerald-50",
       badgeColor: "text-emerald-600",
+      position: "top-0 left-0",
+      animationDelay: 0,
+      rotation: "-rotate-1",
     },
     {
+      id: 1,
       icon: HiUserGroup,
       iconBg: "bg-gradient-to-br from-violet-500 to-purple-600",
       iconColor: "text-white",
@@ -43,8 +51,12 @@ const Banner = () => {
       badgeColor: "text-emerald-600",
       isAvatar: true,
       avatar: "SJ",
+      position: "top-4 right-0",
+      animationDelay: 0.2,
+      rotation: "rotate-1",
     },
     {
+      id: 2,
       icon: HiClipboardList,
       iconBg: "bg-emerald-50",
       iconColor: "text-emerald-600",
@@ -54,8 +66,12 @@ const Banner = () => {
       badge: "Sent",
       badgeBg: "bg-amber-50",
       badgeColor: "text-amber-600",
+      position: "top-[140px] left-2",
+      animationDelay: 0.4,
+      rotation: "-rotate-2",
     },
     {
+      id: 3,
       icon: HiCube,
       iconBg: "bg-amber-50",
       iconColor: "text-amber-600",
@@ -65,8 +81,12 @@ const Banner = () => {
       badge: "45 sold",
       badgeBg: "",
       badgeColor: "text-text-muted",
+      position: "top-[140px] right-1",
+      animationDelay: 0.6,
+      rotation: "rotate-2",
     },
     {
+      id: 4,
       icon: HiCurrencyDollar,
       iconBg: "bg-red-50",
       iconColor: "text-red-600",
@@ -77,134 +97,186 @@ const Banner = () => {
       badgeBg: "bg-emerald-50",
       badgeColor: "text-emerald-600",
       isSuccess: true,
+      position: "bottom-0 left-1/2 -translate-x-1/2",
+      animationDelay: 0.8,
+      rotation: "rotate-0",
     },
   ];
 
   return (
-    <section className="relative overflow-hidden pt-10 md:pt-0 pb-20">
-      {/* Subtle Background Gradient */}
-      <div className="absolute inset-0 pointer-events-none">
+    <section className="relative overflow-hidden pt-12 md:pt-16 lg:pt-20 pb-24 lg:pb-32">
+      {/* Refined Background Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Primary gradient orb */}
         <div
-          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full opacity-[0.02]"
+          className="absolute top-0 right-0 w-[800px] h-[800px] rounded-full opacity-[0.03] blur-3xl"
           style={{
             background:
-              "radial-gradient(circle, var(--color-brand), transparent)",
+              "radial-gradient(circle, var(--color-brand), transparent 70%)",
             transform: "translate(30%, -30%)",
+          }}
+        />
+        {/* Secondary accent orb */}
+        <div
+          className="absolute bottom-0 left-0 w-[600px] h-[600px] rounded-full opacity-[0.02] blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, #7c3aed, transparent 70%)",
+            transform: "translate(-20%, 20%)",
+          }}
+        />
+        {/* Subtle grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `
+              linear-gradient(var(--color-border) 1px, transparent 1px),
+              linear-gradient(90deg, var(--color-border) 1px, transparent 1px)
+            `,
+            backgroundSize: "60px 60px",
           }}
         />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-2 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left Content */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          {/* Left Content - Enhanced Typography & Spacing */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
             className="text-center lg:text-left"
           >
-            {/* Badge */}
-            <div
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-6"
+            {/* Refined Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-8"
               style={{
                 backgroundColor: "var(--color-brand-light)",
                 color: "var(--color-brand)",
-                border: "1px solid rgba(37, 99, 235, 0.1)",
+                border: "1px solid rgba(37, 99, 235, 0.12)",
               }}
             >
               <HiBadgeCheck className="w-4 h-4" />
               <span>Smart Invoicing Solution</span>
-            </div>
+            </motion.div>
 
-            {/* Heading */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6">
+            {/* Enhanced Heading with Better Typography */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight leading-[1.08] mb-6">
               <span style={{ color: "var(--color-text-primary)" }}>
-                Simplify Your
+                Simplify your
               </span>
               <br />
-              <span className="bg-gradient-to-r from-brand via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Billing Workflow
+              <span className="relative inline-block">
+                <span className="bg-gradient-to-r from-brand via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  billing workflow
+                </span>
+                {/* Subtle underline accent */}
+                <span
+                  className="absolute -bottom-1 left-0 right-0 h-[3px] rounded-full opacity-20"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, var(--color-brand), #7c3aed)",
+                  }}
+                />
               </span>
             </h1>
 
-            {/* Description */}
+            {/* Refined Description with Better Readability */}
             <p
-              className="text-base sm:text-lg leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0"
+              className="text-base sm:text-lg leading-relaxed mb-10 max-w-lg mx-auto lg:mx-0"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              Create invoices, manage customers, track payments, and monitor
-              your business with one powerful invoice management solution.
+              Create professional invoices, manage customers, track payments, and 
+              gain valuable insights — all from one intuitive platform designed for 
+              modern businesses.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+            {/* Enhanced CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-12">
               <motion.a
                 href="#features"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl text-white transition-colors duration-200"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="group relative inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold rounded-xl text-white overflow-hidden"
                 style={{
                   backgroundColor: "var(--color-brand)",
-                  boxShadow: "0 2px 8px rgba(37, 99, 235, 0.2)",
+                  boxShadow: "0 4px 14px rgba(37, 99, 235, 0.25)",
                 }}
               >
-                Explore Features
-                <HiArrowRight className="w-4 h-4" />
+                <span className="relative z-10 flex items-center gap-2">
+                  Explore Features
+                  <HiArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </span>
+                {/* Shine effect on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               </motion.a>
 
               <motion.a
                 href="#demo"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl transition-colors duration-200"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold rounded-xl transition-all duration-300"
                 style={{
                   color: "var(--color-text-primary)",
-                  border: "1px solid var(--color-border)",
+                  border: "1.5px solid var(--color-border)",
+                  backgroundColor: "var(--color-surface)",
                 }}
               >
-                <HiPlay className="w-4 h-4" />
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-brand/10 text-brand transition-colors duration-300 group-hover:bg-brand group-hover:text-white">
+                  <HiPlay className="w-3 h-3 ml-0.5" />
+                </span>
                 View Demo
               </motion.a>
             </div>
 
-            {/* Highlights */}
-            <div className="mt-10 flex flex-wrap gap-2 justify-center lg:justify-start">
+            {/* Enhanced Highlights with Better Visual Weight */}
+            <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
               {highlights.map((item, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.5 + index * 0.05 }}
+                  whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all duration-300 cursor-default"
                   style={{
                     backgroundColor: "var(--color-surface)",
                     color: "var(--color-text-secondary)",
                     border: "1px solid var(--color-border-light)",
                   }}
                 >
-                  <item.icon className="w-3.5 h-3.5 opacity-60" />
+                  <item.icon className="w-3.5 h-3.5 opacity-50" />
                   {item.label}
-                </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
 
-          {/* Right Content - Desktop Floating Cards */}
+          {/* Right Content - Enhanced Floating Cards */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
+            initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{
-              duration: 0.6,
+              duration: 0.7,
               ease: [0.25, 0.1, 0.25, 1],
-              delay: 0.2,
+              delay: 0.3,
             }}
           >
-            {/* Mobile Grid */}
+            {/* Mobile Grid - Refined */}
             <div className="lg:hidden grid grid-cols-2 gap-3">
               {cards.map((card, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className={`${index === 4 ? "col-span-2" : ""} p-4 rounded-2xl bg-white`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 * index }}
+                  className={`${index === 4 ? "col-span-2" : ""} p-4 rounded-2xl bg-white transition-shadow duration-300`}
                   style={{
                     border: "1px solid var(--color-border)",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.02)",
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
                   }}
                 >
                   <div className="flex items-center gap-3 mb-3">
@@ -251,250 +323,161 @@ const Banner = () => {
                       {card.badge}
                     </span>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
 
-            {/* Desktop Floating Cards */}
-            <div className="hidden lg:flex items-center justify-center h-[500px]">
-              <div className="relative w-[460px] h-[380px]">
-                {/* Card 1 - Invoice (Top Left) */}
+            {/* Desktop Floating Cards - Completely Redesigned */}
+            <div className="hidden lg:flex items-center justify-center min-h-[520px]">
+              <div className="relative w-[480px] h-[420px]">
+                {/* Background glow behind cards */}
                 <div
-                  className="absolute top-0 left-0 w-[210px]"
-                  style={{ animation: "float-slow 6s ease-in-out infinite" }}
-                >
-                  <div
-                    className="p-4 rounded-2xl bg-white cursor-pointer transition-all duration-300 hover:shadow-lg"
-                    style={{
-                      border: "1px solid var(--color-border)",
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.02)",
-                    }}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-50">
-                        <HiDocumentText className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p
-                          className="text-xs font-semibold tracking-tight"
-                          style={{ color: "var(--color-text-primary)" }}
-                        >
-                          Invoice
-                        </p>
-                        <p
-                          className="text-[10px] font-medium"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          INV-2024-089
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="text-sm font-bold tracking-tight"
-                        style={{ color: "var(--color-text-primary)" }}
-                      >
-                        $2,450
-                      </span>
-                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold tracking-wide bg-emerald-50 text-emerald-600">
-                        Paid
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 2 - Customer (Top Right) */}
-                <div
-                  className="absolute top-2 right-0 w-[210px]"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full opacity-[0.04] blur-3xl"
                   style={{
-                    animation: "float-medium 6.5s ease-in-out infinite 0.5s",
+                    background:
+                      "radial-gradient(circle, var(--color-brand), transparent)",
                   }}
-                >
-                  <div
-                    className="p-4 rounded-2xl bg-white cursor-pointer transition-all duration-300 hover:shadow-lg"
-                    style={{
-                      border: "1px solid var(--color-border)",
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.02)",
-                    }}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600">
-                        <span className="text-[11px] font-bold text-white">
-                          SJ
-                        </span>
-                      </div>
-                      <div>
-                        <p
-                          className="text-xs font-semibold tracking-tight"
-                          style={{ color: "var(--color-text-primary)" }}
-                        >
-                          Sarah Johnson
-                        </p>
-                        <p
-                          className="text-[10px] font-medium"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          Acme Corp
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="text-xs font-medium"
-                        style={{ color: "var(--color-text-muted)" }}
-                      >
-                        12 invoices
-                      </span>
-                      <span className="text-[11px] font-semibold text-emerald-600">
-                        Active
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                />
 
-                {/* Card 3 - Quotation (Middle Left) */}
-                <div
-                  className="absolute top-[130px] left-3 w-[210px]"
-                  style={{
-                    animation: "float-slower 5.5s ease-in-out infinite 1s",
-                  }}
-                >
-                  <div
-                    className="p-4 rounded-2xl bg-white cursor-pointer transition-all duration-300 hover:shadow-lg"
-                    style={{
-                      border: "1px solid var(--color-border)",
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.02)",
+                {cards.map((card) => (
+                  <motion.div
+                    key={card.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.6,
+                      delay: 0.4 + card.animationDelay,
+                      ease: [0.25, 0.1, 0.25, 1],
                     }}
+                    className={`absolute ${card.position} w-[220px]`}
+                    style={{ zIndex: hoveredCard === card.id ? 10 : 1 }}
+                    onMouseEnter={() => setHoveredCard(card.id)}
+                    onMouseLeave={() => setHoveredCard(null)}
                   >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50">
-                        <HiClipboardList className="w-4 h-4 text-emerald-600" />
-                      </div>
-                      <div>
-                        <p
-                          className="text-xs font-semibold tracking-tight"
-                          style={{ color: "var(--color-text-primary)" }}
-                        >
-                          Quotation
-                        </p>
-                        <p
-                          className="text-[10px] font-medium"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          QUO-2024-045
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="text-sm font-bold tracking-tight"
-                        style={{ color: "var(--color-text-primary)" }}
+                    <motion.div
+                      animate={{
+                        y: [0, -8, 0],
+                        rotate: hoveredCard === card.id ? 0 : undefined,
+                      }}
+                      transition={{
+                        y: {
+                          duration: 4 + card.animationDelay,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: card.animationDelay,
+                        },
+                        rotate: {
+                          duration: 0.3,
+                          ease: "easeOut",
+                        },
+                      }}
+                      whileHover={{
+                        scale: 1.05,
+                        y: -12,
+                        rotate: 0,
+                        transition: { duration: 0.3, ease: "easeOut" },
+                      }}
+                      className={`${card.rotation}`}
+                    >
+                      <div
+                        className="p-5 rounded-2xl bg-white cursor-pointer transition-shadow duration-300"
+                        style={{
+                          border: "1px solid var(--color-border)",
+                          boxShadow:
+                            hoveredCard === card.id
+                              ? "0 20px 40px -12px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(37, 99, 235, 0.1)"
+                              : "0 2px 8px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.04)",
+                        }}
                       >
-                        $5,600
-                      </span>
-                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold tracking-wide bg-amber-50 text-amber-600">
-                        Sent
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${card.iconBg}`}
+                          >
+                            {card.isAvatar ? (
+                              <span className="text-xs font-bold text-white">
+                                {card.avatar}
+                              </span>
+                            ) : (
+                              <card.icon
+                                className={`w-4.5 h-4.5 ${card.iconColor}`}
+                              />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p
+                              className="text-xs font-semibold tracking-tight truncate"
+                              style={{ color: "var(--color-text-primary)" }}
+                            >
+                              {card.title}
+                            </p>
+                            <p
+                              className="text-[11px] font-medium truncate"
+                              style={{ color: "var(--color-text-muted)" }}
+                            >
+                              {card.subtitle}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`text-sm font-bold tracking-tight`}
+                            style={{
+                              color: card.isSuccess
+                                ? "#059669"
+                                : "var(--color-text-primary)",
+                            }}
+                          >
+                            {card.value}
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded-lg text-[10px] font-semibold tracking-wide ${card.badgeBg} ${card.badgeColor}`}
+                          >
+                            {card.badge}
+                          </span>
+                        </div>
 
-                {/* Card 4 - Product (Middle Right) */}
-                <div
-                  className="absolute top-[130px] right-2 w-[210px]"
-                  style={{
-                    animation: "float-medium-slow 7s ease-in-out infinite 1.5s",
-                  }}
-                >
-                  <div
-                    className="p-4 rounded-2xl bg-white cursor-pointer transition-all duration-300 hover:shadow-lg"
-                    style={{
-                      border: "1px solid var(--color-border)",
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.02)",
-                    }}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-amber-50">
-                        <HiCube className="w-4 h-4 text-amber-600" />
+                        {/* Subtle progress indicator for certain cards */}
+                        {card.id === 0 && (
+                          <div className="mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full w-3/4 rounded-full bg-emerald-500"
+                              style={{ transition: "width 1s ease" }}
+                            />
+                          </div>
+                        )}
+                        {card.id === 2 && (
+                          <div className="mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full w-1/2 rounded-full bg-amber-500"
+                              style={{ transition: "width 1s ease" }}
+                            />
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <p
-                          className="text-xs font-semibold tracking-tight"
-                          style={{ color: "var(--color-text-primary)" }}
-                        >
-                          Web Development
-                        </p>
-                        <p
-                          className="text-[10px] font-medium"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          PRD-001
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="text-sm font-bold tracking-tight"
-                        style={{ color: "var(--color-text-primary)" }}
-                      >
-                        $1,200
-                      </span>
-                      <span
-                        className="text-[10px] font-medium"
-                        style={{ color: "var(--color-text-muted)" }}
-                      >
-                        45 sold
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 5 - Payment (Bottom Center) */}
-                <div
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[230px]"
-                  style={{ animation: "float-slow 6s ease-in-out infinite 2s" }}
-                >
-                  <div
-                    className="p-4 rounded-2xl bg-white cursor-pointer transition-all duration-300 hover:shadow-lg"
-                    style={{
-                      border: "1px solid var(--color-border)",
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.02)",
-                    }}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-50">
-                        <HiCurrencyDollar className="w-4 h-4 text-red-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p
-                          className="text-xs font-semibold tracking-tight"
-                          style={{ color: "var(--color-text-primary)" }}
-                        >
-                          Payment Received
-                        </p>
-                        <p
-                          className="text-[10px] font-medium"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          via Stripe · Today
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold tracking-tight text-emerald-600">
-                        +$1,890
-                      </span>
-                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold tracking-wide bg-emerald-50 text-emerald-600">
-                        Success
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                    </motion.div>
+                  </motion.div>
+                ))}
               </div>
             </div>
           </motion.div>
         </div>
       </div>
+
+      {/* Add floating animation keyframes */}
+      <style>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes float-medium {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes float-slower {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+      `}</style>
     </section>
   );
 };

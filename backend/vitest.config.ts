@@ -8,7 +8,7 @@ export default defineConfig({
     include: ['src/tests/**/*.test.ts'],
     setupFiles: ['src/tests/helpers/setup.ts'],
     pool: 'forks',
-    fileParallelism: false,  // Run files one at a time
+    fileParallelism: false, 
     hookTimeout: 30000,
     testTimeout: 30000,
   },
