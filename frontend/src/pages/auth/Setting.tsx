@@ -1,17 +1,24 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { TbCheck, TbUser, TbCamera, TbFileText, TbNotes, TbSettings } from "react-icons/tb";
+import {
+  TbCheck,
+  TbUser,
+  TbCamera,
+  TbFileText,
+  TbNotes,
+  TbSettings,
+} from "react-icons/tb";
 import { toast } from "../../utils/toast";
 import { FormLayout } from "../../components/ui/FormLayout";
 import { FormSection } from "../../components/ui/FormSection";
 
 const avatarOptions = [
-  { id: "av1", name: "Avatar 1", src: "./avatars/av1.png" },
-  { id: "av2", name: "Avatar 2", src: "./avatars/av2.png" },
-  { id: "av3", name: "Avatar 3", src: "./avatars/av3.png" },
-  { id: "av4", name: "Avatar 4", src: "./avatars/av4.png" },
-  { id: "av5", name: "Avatar 5", src: "./avatars/av5.png" },
-  { id: "av6", name: "Avatar 6", src: "./avatars/av6.png" },
+  { id: "av1", name: "Avatar 1", src: "/avatars/av1.png" },
+  { id: "av2", name: "Avatar 2", src: "/avatars/av2.png" },
+  { id: "av3", name: "Avatar 3", src: "/avatars/av3.png" },
+  { id: "av4", name: "Avatar 4", src: "/avatars/av4.png" },
+  { id: "av5", name: "Avatar 5", src: "/avatars/av5.png" },
+  { id: "av6", name: "Avatar 6", src: "/avatars/av6.png" },
 ];
 
 type TabType = "avatar" | "terms" | "notes";
@@ -43,14 +50,15 @@ export default function Setting() {
   const saveAvatar = (avatarId: string) => {
     setSelectedAvatar(avatarId);
     localStorage.setItem("userAvatar", JSON.stringify({ avatarId }));
-    toast.success("Avatar updated!");
+    window.dispatchEvent(new Event("avatarUpdated"));
+    // toast.success("Avatar updated!");
   };
 
   const currentAvatar = avatarOptions.find((a) => a.id === selectedAvatar);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Save based on active tab
     switch (activeTab) {
       case "terms":
@@ -79,7 +87,11 @@ export default function Setting() {
         subtitle="Manage your profile and invoice preferences"
         icon={TbSettings}
         onSubmit={handleSubmit}
-        submitLabel={activeTab === "avatar" ? "Save Settings" : `Save ${tabs.find(t => t.id === activeTab)?.label}`}
+        submitLabel={
+          activeTab === "avatar"
+            ? "Save Settings"
+            : `Save ${tabs.find((t) => t.id === activeTab)?.label}`
+        }
       >
         {/* Tab Navigation */}
         <div className="flex gap-2 p-1 bg-surface-hover rounded-xl mb-6">
@@ -183,7 +195,8 @@ export default function Setting() {
                 className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand resize-y transition-all"
               />
               <p className="text-xs text-text-muted">
-                These terms will automatically appear when you create a new invoice. You can still modify them per invoice if needed.
+                These terms will automatically appear when you create a new
+                invoice. You can still modify them per invoice if needed.
               </p>
             </div>
           </FormSection>
@@ -205,7 +218,8 @@ export default function Setting() {
                 className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand resize-y transition-all"
               />
               <p className="text-xs text-text-muted">
-                These notes will automatically appear when you create a new invoice. You can still modify them per invoice if needed.
+                These notes will automatically appear when you create a new
+                invoice. You can still modify them per invoice if needed.
               </p>
             </div>
           </FormSection>

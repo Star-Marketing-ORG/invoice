@@ -20,21 +20,13 @@ import { toast } from "../../utils/toast";
 import { Button } from "../ui/ButtonProps";
 import { searchItems, type SearchItem } from "../../assets/data";
 
-// Import avatars
-import av1 from "../../../public/avatars/av1.png";
-import av2 from "../../../public/avatars/av2.png";
-import av3 from "../../../public/avatars/av3.png";
-import av4 from "../../../public/avatars/av4.png";
-import av5 from "../../../public/avatars/av5.png";
-import av6 from "../../../public/avatars/av6.png";
-
 const avatarMap: Record<string, string> = {
-  av1,
-  av2,
-  av3,
-  av4,
-  av5,
-  av6,
+  av1: "/avatars/av1.png",
+  av2: "/avatars/av2.png",
+  av3: "/avatars/av3.png",
+  av4: "/avatars/av4.png",
+  av5: "/avatars/av5.png",
+  av6: "/avatars/av6.png",
 };
 
 export function Header() {
@@ -42,18 +34,34 @@ export function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [userAvatar, setUserAvatar] = useState(av1);
+  const [userAvatar, setUserAvatar] = useState("/avatars/av1.png");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { user, isAuthenticated, logout } = useAuthStore();
 
   // Load stored avatar
   useEffect(() => {
-    const saved = localStorage.getItem("userAvatar");
-    if (saved) {
-      const { avatarId } = JSON.parse(saved);
-      setUserAvatar(avatarMap[avatarId] || av1);
-    }
+    const loadAvatar = () => {
+      const saved = localStorage.getItem("userAvatar");
+      if (saved) {
+        const { avatarId } = JSON.parse(saved);
+        setUserAvatar(avatarMap[avatarId] || "/avatars/av1.png");
+      }
+    };
+
+    // Load initially
+    loadAvatar();
+
+    // Listen for storage changes (for real-time updates)
+    window.addEventListener("storage", loadAvatar);
+
+    // Custom event for same-tab updates
+    window.addEventListener("avatarUpdated", loadAvatar);
+
+    return () => {
+      window.removeEventListener("storage", loadAvatar);
+      window.removeEventListener("avatarUpdated", loadAvatar);
+    };
   }, []);
 
   useEffect(() => {
