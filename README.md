@@ -32,6 +32,3 @@ A **self-hosted invoice and quotation management system** built for freelancers,
 | 🔍 **Command Palette** | cmdk-powered search (Ctrl+K) across all 17+ routes |
 | ✅ **Type-Safe** | Shared Zod schemas across frontend & backend |
 
----
-
-## 🏗️ Architecture
