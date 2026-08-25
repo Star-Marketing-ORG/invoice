@@ -403,3 +403,59 @@ export interface Notification {
   } | null;
 }
 
+
+
+export interface InvoiceAIPreview {
+  invoice: {
+    id: string;
+    invoiceNumber: string;
+    status: string;
+    subtotal: number;
+    discount: number;
+    tax: number;
+    total: number;
+    customer: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    items: Array<{
+      description: string;
+      quantity: number;
+      unitPrice: number;
+      discount: number;
+      taxRate: number;
+      total: number;
+    }>;
+  };
+  warnings: string[];
+}
+
+export interface CustomerSuggestion {
+  id: string;
+  customerCode: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+}
+
+export interface AIAction {
+  type: "CREATE_CUSTOMER" | "CREATE_SERVICE";
+  label: string;
+}
+
+export interface AIErrorDetails {
+  unmatchedServices?: Array<{
+    requested: string;
+    message: string;
+  }>;
+  suggestedCustomers?: CustomerSuggestion[];
+  actions?: AIAction[];
+}
+
+export interface AIErrorResponse {
+  success: false;
+  message: string;
+  details?: AIErrorDetails;
+}

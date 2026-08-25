@@ -45,6 +45,17 @@ export class FinancialCalculations {
     return (afterDiscount * taxPercentage) / 100;
   }
 
+  // Calculate total item-level tax
+  // Sum of individual item taxes (tax applied after item discount)
+  static calculateItemTaxes(items: BillItem[]): number {
+    return items.reduce((sum, item) => {
+      const itemTotal = item.quantity * item.unitPrice;
+      const itemDiscount = (itemTotal * (item.discount || 0)) / 100;
+      const afterItemDiscount = itemTotal - itemDiscount;
+      return sum + (afterItemDiscount * (item.taxRate || 0)) / 100;
+    }, 0);
+  }
+
   // Calculate all totals for a bill (quotation/invoice)
   static calculateTotals(
     items: BillItem[],
@@ -58,16 +69,30 @@ export class FinancialCalculations {
   } {
     // Calculate subtotal
     const subtotal = this.calculateSubtotal(items);
+    
     // Calculate item-level discounts
     const itemDiscounts = this.calculateItemDiscounts(items);
+    
     // Calculate global discount
     const globalDiscount = this.calculateGlobalDiscount(subtotal, discount);
+    
     // Total discount = item discounts + global discount
     const totalDiscount = itemDiscounts + globalDiscount;
+    
     // Apply discounts
     const afterDiscount = subtotal - totalDiscount;
-    // Apply tax
-    const taxAmount = this.calculateTax(afterDiscount, tax);
+    
+    // Calculate tax amount
+    let taxAmount = 0;
+    
+    if (tax > 0) {
+      // If invoice-level tax is provided, use it
+      taxAmount = this.calculateTax(afterDiscount, tax);
+    } else {
+      // Otherwise, calculate from item-level tax rates
+      taxAmount = this.calculateItemTaxes(items);
+    }
+    
     // Final total
     const total = afterDiscount + taxAmount;
 

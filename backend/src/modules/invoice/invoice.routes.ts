@@ -8,9 +8,15 @@ import {
 } from "@invoice/shared";
 import { authMiddleware } from "../../common/middleware/auth.middleware";
 import { authorize } from "../../common/middleware/authorize.middleware";
+import { invoiceAIController } from "../ai/invoiceAI.controller";
 
 const router = Router();
 
+// AI routes (must be before /:id routes)
+router.post("/generate", authMiddleware, invoiceAIController.generateInvoice);
+router.post("/test-parse", authMiddleware, invoiceAIController.testParse);
+
+// Regular invoice routes
 router.get("/", invoiceController.getAllInvoices);
 router.get("/search", invoiceController.searchInvoices);
 router.get("/filter", invoiceController.filterInvoices);

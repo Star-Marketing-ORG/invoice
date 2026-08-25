@@ -21,6 +21,7 @@ import NewQuotation from "./pages/NewPage/NewQuotation";
 import Setting from "./pages/auth/Setting";
 import LPHomepage from "./pages/LPPage/LPHomepage";
 import Notification from "./pages/auth/Notification";
+import AIFloatingButton from "./components/layout/AIFloatingButton";
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -50,9 +51,11 @@ function App() {
 
   return (
     <div className="">
+      <AIFloatingButton />
       <Routes>
         {/* Landing page route - outside dashboard layout */}
         <Route path="/" element={<LPHomepage />} />
+        
 
         {/* Dashboard routes */}
         <Route element={<DashboardLayout />}>
