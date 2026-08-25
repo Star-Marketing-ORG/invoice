@@ -133,47 +133,76 @@ export class InvoiceAIParser {
     }
   }
 
-  private buildPrompt(text: string): string {
-    return `You are an intelligent invoice parser. Extract invoice details from this text: "${text}"
+ private buildPrompt(text: string): string {
+  return `You are an intelligent invoice assistant. Your job is to understand user requests naturally, like a human assistant would.
 
-Return ONLY a valid JSON object (no markdown, no code blocks, no explanations):
+USER REQUEST: "${text}"
+
+TASK:
+Extract invoice details by understanding the user's intent, even if they use casual language, abbreviations, or make mistakes.
+
+EXTRACTION RULES:
+
+**Customer Name:**
+- Person names: "Ritesh", "John", "Suresh Kumar"
+- Company names: "Acme Ltd", "Tech Corp", "Sun Pharma"
+- After "for", "invoice for", "bill to"
+- If multiple names, pick the one after "for"
+
+**Service/Product:**
+- What the user is selling or charging for
+- "website" → this is a service
+- "logo design" → this is a service
+- "web dev" → web development
+- Keep the service name simple and clear
+
+**Discount:**
+- "50% off", "50% discount", "50 percent" → discount: 50, discountType: "percentage"
+- "10k off", "5000 off", "flat 5000" → discount: 5000, discountType: "fixed"
+- "half price" → discount: 50, discountType: "percentage"
+- No discount → 0
+
+**Quantity:**
+- "2 websites", "two logos" → quantity: 2
+- No quantity → 1
+
+**Due Date:**
+- "due next week" → calculate from today
+- "due 15th August" → YYYY-MM-DD
+- No date → ""
+
+**Email/Phone:**
+- Look for email patterns and phone numbers
+- Extract if present
+
+IMPORTANT:
+- Be forgiving with spelling mistakes
+- Understand intent, not just keywords
+- If user says "fgdh" as service, keep it as "fgdh" (we'll match later)
+- Don't invent information
+- If unsure about a field, leave it empty
+
+Return ONLY valid JSON:
 {
-  "customerName": "extracted customer name",
-  "customerEmail": "email if found or empty string",
-  "customerPhone": "phone if found or empty string",
+  "customerName": "",
+  "customerEmail": "",
+  "customerPhone": "",
   "items": [
     {
-      "serviceName": "product or service name",
-      "description": "optional description",
+      "serviceName": "",
+      "description": "",
       "quantity": 1,
       "unitPrice": 0,
       "discount": 0,
-      "discountType": "percentage or fixed",
+      "discountType": "percentage",
       "taxRate": 0
     }
   ],
-  "dueDate": "YYYY-MM-DD if found or empty string",
-  "notes": "any notes or empty string",
-  "termsConditions": "terms if found or empty string"
+  "dueDate": "",
+  "notes": "",
+  "termsConditions": ""
+}`;
 }
-
-Rules:
-- Extract customer name (look for Ltd, LLC, Inc, Company, Corp, Pvt, or person names).
-- Extract email addresses (pattern: something@something.com).
-- Extract phone numbers (10+ digits).
-- Number shorthand: "10k" = 10000, "5 thousand" = 5000, "2 lakh"/"2l" = 200000, "1 crore" = 10000000.
-- Currency symbols (₹, $, Rs, INR, USD) should be stripped; ignore commas inside numbers (e.g. "1,00,000" = 100000).
-- "40%" or "40 percent" means percentage discount; "flat 500 off" or "500 flat" means fixed discount of 500.
-- If both a percentage and a flat amount are mentioned for the same item, prefer the one stated last.
-- If no quantity mentioned, default to 1. Quantity must be a positive number.
-- If no tax mentioned, default to 0.
-- Multiple products/services (separated by "and", commas, or "+") should be separate items in the array.
-- For "website product 10k", serviceName should be "website", unitPrice should be 10000.
-- Parse dates in any format (DD/MM/YYYY, MM/DD/YYYY, "next week", "in 15 days") into YYYY-MM-DD, using today's date as reference; if genuinely unparseable, leave as empty string.
-- If a field cannot be determined, use an empty string (or 0 for numbers) rather than guessing.
-- Be accurate with numbers and calculations; never invent values not implied by the text.
-- Output must be valid JSON: no trailing commas, no comments, all keys double-quoted.`;
-  }
 
   /**
    * Attempts to parse the model's response as JSON. If that fails, asks

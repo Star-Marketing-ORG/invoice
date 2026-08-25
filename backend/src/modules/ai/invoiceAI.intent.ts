@@ -227,47 +227,52 @@ export class InvoiceAIIntentValidator {
     return { intent: "unrelated" };
   }
 
-  private buildIntentPrompt(text: string): string {
-    return `Classify this user message for an invoice-creation assistant: "${text}"
+ private buildIntentPrompt(text: string): string {
+  return `You are an AI assistant that helps users create invoices.
 
-Return ONLY a JSON object, no markdown, no explanations:
-{
-  "intent": "create_invoice" | "greeting" | "vague" | "gibberish" | "question" | "unrelated",
-  "reason": "short reason"
-}
+USER MESSAGE: "${text}"
 
-Category rules:
-- "create_invoice": 
-  * Mentions "invoice", "bill", "charge", "create invoice", "make invoice", "generate invoice"
-  * OR has "for" followed by a customer name (person or company)
-  * OR has customer name + service/product
-  * Even if service is missing, if it has "invoice for [name]", it's create_invoice
-  * Even if discount/price is missing, still create_invoice
+CLASSIFY THIS MESSAGE:
+Return ONLY JSON: {"intent": "...", "reason": "..."}
 
-- "greeting": Simple greetings ONLY (hi, hello, hey, etc.)
-- "vague": ONLY when text is JUST "invoice" or "make invoice" with nothing else
-- "gibberish": Random characters with no words
-- "question": Questions with "?" that are clearly not about invoices
-- "unrelated": Completely different topic
+INTENT CATEGORIES:
 
-IMPORTANT:
-- If text contains "invoice" or "bill" AND has a customer name after "for", it's ALWAYS "create_invoice"
-- If text contains "for [name]" with anything else, it's "create_invoice"
-- "make invoice for Ritesh R" → "create_invoice" (customer present, service can be asked later)
-- "make invoice for Ritesh R, website with 50% discount" → "create_invoice"
+1. "create_invoice" - User wants to create an invoice
+   - Contains "invoice", "bill", "charge"
+   - OR has "for [name]" pattern
+   - OR mentions customer + service
+   - Even if incomplete, classify as create_invoice
 
-Examples:
+2. "greeting" - Just saying hello
+   - "hi", "hello", "hey"
+
+3. "vague" - Too little information
+   - Just "invoice" or "make invoice" with nothing else
+
+4. "gibberish" - Random characters
+   - "fgdh", "asdf", "xyz"
+
+5. "question" - Asking something
+   - Ends with "?"
+   - "what is...", "how to..."
+
+6. "unrelated" - Different topic entirely
+   - Weather, news, jokes
+
+EXAMPLES:
 - "hi" → {"intent":"greeting"}
-- "make invoice" → {"intent":"vague","reason":"missing customer and service"}
-- "invoice" → {"intent":"vague","reason":"missing customer and service"}
-- "make invoice for Ritesh R" → {"intent":"create_invoice","reason":"has customer name"}
-- "invoice for Ritesh, website design" → {"intent":"create_invoice"}
-- "make invoice for Ritesh R, website with 50% discount" → {"intent":"create_invoice"}
-- "Acme Ltd needs a logo design bill, 50% off" → {"intent":"create_invoice"}
-- "what's the weather?" → {"intent":"question"}
-- "sjfsljfl" → {"intent":"gibberish"}
-- "tell me a joke" → {"intent":"unrelated"}`;
-  }
+- "make invoice" → {"intent":"vague"}
+- "make invoice for Ritesh" → {"intent":"create_invoice"}
+- "invoice for Ritesh, website" → {"intent":"create_invoice"}
+- "Ritesh, website, 50% off" → {"intent":"create_invoice"}
+- "what's weather?" → {"intent":"question"}
+- "fgdh" → {"intent":"gibberish"}
+
+RULES:
+- If in doubt, classify as "create_invoice"
+- Better to pass through and handle later than block valid requests
+- "for [name]" always means create_invoice`;
+}
 
   private throwForIntent(
     intent: IntentCategory,
