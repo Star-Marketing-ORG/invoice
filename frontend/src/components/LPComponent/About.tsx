@@ -9,10 +9,19 @@ import {
   HiDocumentDownload,
   HiSwitchHorizontal,
   HiTerminal,
+  HiSparkles,
 } from "react-icons/hi";
 
 const About = () => {
   const features = [
+    {
+      icon: HiSparkles,
+      title: "AI-Powered Generation",
+      description:
+        "Create invoices by simply describing what you need. AI handles the rest automatically.",
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
+    },
     {
       icon: HiBell,
       title: "Smart Notifications",
@@ -52,14 +61,6 @@ const About = () => {
         "Shared TypeScript types and Zod validation prevent errors across the entire stack.",
       color: "text-red-600",
       bg: "bg-red-50",
-    },
-    {
-      icon: HiTerminal,
-      title: "Self-Hosted Solution",
-      description:
-        "Own your data completely. Deploy on your server and customize to fit your needs.",
-      color: "text-cyan-600",
-      bg: "bg-cyan-50",
     },
   ];
 
@@ -166,7 +167,9 @@ const About = () => {
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
                   className="p-4 rounded-2xl bg-white border border-border shadow-sm hover:shadow-md transition-shadow duration-300"
                 >
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${feature.bg}`}>
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${feature.bg}`}
+                  >
                     <feature.icon className={`w-4 h-4 ${feature.color}`} />
                   </div>
                   <h3 className="text-sm font-semibold mb-1 text-text-primary">
@@ -243,7 +246,9 @@ const About = () => {
                       <p className={`text-lg font-bold ${stat.color}`}>
                         {stat.value}
                       </p>
-                      <p className={`text-[10px] font-medium ${stat.color} opacity-80`}>
+                      <p
+                        className={`text-[10px] font-medium ${stat.color} opacity-80`}
+                      >
                         {stat.label}
                       </p>
                     </div>
@@ -332,9 +337,7 @@ const About = () => {
             </div>
 
             {/* Floating Badge */}
-            <motion.div
-              className="absolute -bottom-4 -right-4 z-10 animate-float-slow"
-            >
+            <motion.div className="absolute -bottom-4 -right-4 z-10 animate-float-slow">
               <div className="px-5 py-3 rounded-2xl flex items-center gap-3 bg-white border border-border shadow-lg">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-50">
                   <HiCheckCircle className="w-5 h-5 text-emerald-600" />
@@ -349,9 +352,7 @@ const About = () => {
             </motion.div>
 
             {/* Floating Mini Card */}
-            <motion.div
-              className="absolute -top-4 -left-4 z-10 animate-float-medium"
-            >
+            <motion.div className="absolute -top-4 -left-4 z-10 animate-float-medium">
               <div className="px-4 py-2.5 rounded-xl flex items-center gap-2 bg-white border border-border shadow-md">
                 <div className="w-2 h-2 rounded-full bg-emerald-500" />
                 <span className="text-xs font-semibold text-text-primary">

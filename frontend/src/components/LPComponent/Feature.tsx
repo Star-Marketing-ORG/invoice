@@ -14,6 +14,17 @@ import {
 const Feature = () => {
   const features = [
     {
+      icon: HiSparkles,
+      title: "AI-Powered Generation",
+      description:
+        "Create invoices and quotations by simply describing what you need. AI understands natural language and generates professional documents instantly.",
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
+      borderColor: "hover:border-indigo-400",
+      shadowColor: "hover:shadow-indigo-500/10",
+      accentColor: "bg-indigo-500",
+    },
+    {
       icon: HiDocumentText,
       title: "Invoice Management",
       description:
@@ -80,17 +91,6 @@ const Feature = () => {
       accentColor: "bg-amber-500",
     },
     {
-      icon: HiUserGroup,
-      title: "Customer Portal",
-      description:
-        "Centralize customer data with GST, contacts, and transaction history. Search and filter customers to quickly access their quotes, invoices, and payments.",
-      color: "text-violet-600",
-      bg: "bg-violet-50",
-      borderColor: "hover:border-violet-400",
-      shadowColor: "hover:shadow-violet-500/10",
-      accentColor: "bg-violet-500",
-    },
-    {
       icon: HiShieldCheck,
       title: "Role-Based Access",
       description:
@@ -135,8 +135,12 @@ const Feature = () => {
                 className={`group p-4 sm:p-5 rounded-2xl transition-all duration-300 cursor-pointer bg-white border border-border shadow-sm ${feature.borderColor} hover:shadow-lg`}
               >
                 {/* Icon */}
-                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-3 transition-transform duration-200 group-hover:scale-110 ${feature.bg}`}>
-                  <feature.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${feature.color}`} />
+                <div
+                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-3 transition-transform duration-200 group-hover:scale-110 ${feature.bg}`}
+                >
+                  <feature.icon
+                    className={`w-4 h-4 sm:w-5 sm:h-5 ${feature.color}`}
+                  />
                 </div>
 
                 {/* Title */}
@@ -150,7 +154,9 @@ const Feature = () => {
                 </p>
 
                 {/* Bottom Accent Line */}
-                <div className={`h-0.5 w-0 group-hover:w-full transition-all duration-300 mt-3 rounded-full ${feature.accentColor}`} />
+                <div
+                  className={`h-0.5 w-0 group-hover:w-full transition-all duration-300 mt-3 rounded-full ${feature.accentColor}`}
+                />
               </motion.div>
             ))}
           </motion.div>
