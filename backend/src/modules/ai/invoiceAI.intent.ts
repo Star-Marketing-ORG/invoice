@@ -218,7 +218,6 @@ export class InvoiceAIIntentValidator {
       return { intent: "create_invoice" };
     }
 
-    // Check if text clearly has invoice-related words
     if (lower.includes("invoice") || lower.includes("bill")) {
       return { intent: "create_invoice" };
     }
