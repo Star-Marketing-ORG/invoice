@@ -214,7 +214,6 @@ export class InvoiceAIIntentValidator {
 
     const lower = cleaned.toLowerCase();
 
-    // Check for positive indicators
     if (lower.includes("create_invoice") || lower.includes("yes")) {
       return { intent: "create_invoice" };
     }
