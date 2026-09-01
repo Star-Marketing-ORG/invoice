@@ -329,12 +329,12 @@ Return ONLY valid JSON:
         });
       }
 
-      if (item.discountType === 'fixed' && item.discount > item.unitPrice * item.quantity) {
-        throw new AppError({
-          statusCode: HTTP_STATUS.BAD_REQUEST,
-          message: `Item ${position}: fixed discount can't exceed the item total.`,
-        });
-      }
+      // if (item.discountType === 'fixed' && item.discount > item.unitPrice * item.quantity) {
+      //   throw new AppError({
+      //     statusCode: HTTP_STATUS.BAD_REQUEST,
+      //     message: `Item ${position}: fixed discount can't exceed the item total.`,
+      //   });
+      // }
     });
   }
 }

@@ -227,8 +227,8 @@ export class InvoiceAIIntentValidator {
     return { intent: "unrelated" };
   }
 
- private buildIntentPrompt(text: string): string {
-  return `You are an AI assistant that helps users create invoices.
+  private buildIntentPrompt(text: string): string {
+    return `You are an AI assistant that helps users create invoices.
 
 USER MESSAGE: "${text}"
 
@@ -272,7 +272,7 @@ RULES:
 - If in doubt, classify as "create_invoice"
 - Better to pass through and handle later than block valid requests
 - "for [name]" always means create_invoice`;
-}
+  }
 
   private throwForIntent(
     intent: IntentCategory,

@@ -4,10 +4,11 @@ import { apiResponse } from "../../common/utils/apiResponse";
 import { HTTP_STATUS } from "../../common/constants/httpStatus";
 import { AppError } from "../../common/errors/AppError";
 import { invoiceAIService } from "./invoiceAI.service";
+import type { InvoiceContext } from "./invoiceAI.types";
 
 class InvoiceAIController {
   generateInvoice = asyncHandler(async (req: Request, res: Response) => {
-    const { text } = req.body;
+    const { text, context } = req.body;
     const userId = (req as any).user?.id;
 
     if (!text || text.trim().length === 0) {
@@ -17,7 +18,11 @@ class InvoiceAIController {
       });
     }
 
-    const result = await invoiceAIService.generateInvoiceFromText(text, userId);
+    const result = await invoiceAIService.generateInvoiceFromText(
+      text,
+      userId,
+      context as InvoiceContext,
+    );
 
     return apiResponse({
       res,
@@ -28,7 +33,7 @@ class InvoiceAIController {
   });
 
   testParse = asyncHandler(async (req: Request, res: Response) => {
-    const { text } = req.body;
+    const { text, context } = req.body;
     const userId = (req as any).user?.id;
 
     if (!text || text.trim().length === 0) {
@@ -38,7 +43,11 @@ class InvoiceAIController {
       });
     }
 
-    const result = await invoiceAIService.previewInvoice(text, userId);
+    const result = await invoiceAIService.previewInvoice(
+      text,
+      userId,
+      context as InvoiceContext,
+    );
 
     return apiResponse({
       res,

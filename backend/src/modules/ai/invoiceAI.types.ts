@@ -1,3 +1,5 @@
+import { ServiceSuggestion } from "./invoiceAI.suggestions";
+
 export interface ParsedInvoiceItem {
   serviceName: string;
   description?: string;
@@ -27,6 +29,7 @@ export interface MatchedService {
     taxRate: number;
   } | null;
   confidence: number;
+  suggestions?: ServiceSuggestion[];
 }
 
 export interface CustomerMatchResult {
@@ -68,4 +71,21 @@ export interface CleanInvoice {
 export interface GenerateInvoiceAIResponse {
   invoice: CleanInvoice;
   warnings: string[];
+}
+
+export interface InvoiceContext {
+  customerName?: string;
+  customerId?: string;
+  services?: Array<{
+    id?: string;
+    name: string;
+    quantity?: number;
+    discount?: number;
+    discountType?: "percentage" | "fixed";
+  }>;
+  discount?: number;
+  discountType?: "percentage" | "fixed";
+  dueDate?: string;
+  notes?: string;
+  termsConditions?: string;
 }
