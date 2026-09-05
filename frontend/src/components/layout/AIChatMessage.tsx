@@ -3,44 +3,109 @@ import {
   TbFileInvoice,
   TbUserPlus,
   TbFilter2Plus,
-  TbAlertTriangle,
   TbCheck,
   TbSparkles,
+  TbPackage,
+  TbX,
 } from "react-icons/tb";
-import type { InvoiceAIPreview } from "../../features/api/invoiceAI.api";
+import type {
+  InvoiceAIPreview,
+  CustomerSuggestion,
+  ServiceSuggestion,
+  InvoiceContext,
+} from "@invoice/shared/types";
+import { useInvoiceAIGenerate } from "../../features/hooks/useInvoiceAI";
+import { useNavigate } from "react-router-dom";
+import { toast } from "../../utils/toast";
+import { useState } from "react";
+import { PopupBottomRight } from "./PopupBottomRight";
+import { NewCustomerForm } from "./NewCustomerForm";
 
-export type ChatErrorType = "CUSTOMER_NOT_FOUND" | "SERVICE_NOT_FOUND" | "INVALID_INPUT";
+export type ChatErrorType =
+  | "CUSTOMER_NOT_FOUND"
+  | "SERVICE_NOT_FOUND"
+  | "INVALID_INPUT";
 
 export interface ChatMessageData {
   id: string;
   type: "user" | "ai";
   text: string;
+  sourceText?: string;
   preview?: InvoiceAIPreview;
   error?: {
     message: string;
     type: ChatErrorType;
     customerName?: string;
     serviceNames?: string[];
+    suggestions?: any[];
   };
   isThinking?: boolean;
 }
 
 interface AIChatMessageProps {
   message: ChatMessageData;
-  onCreateCustomer: (name: string) => void;
-  onCreateService: (name: string) => void;
-  onConfirmInvoice: () => void;
-  isGenerating: boolean;
+  context?: InvoiceContext;
+  onUpdateContext?: (context: InvoiceContext) => void;
+  onSelectCustomer?: (customer: CustomerSuggestion) => void;
+  onSelectService?: (service: ServiceSuggestion) => void;
+  isSelecting?: boolean;
+  onClose?: () => void;
 }
 
 export function AIChatMessage({
   message,
-  onCreateCustomer,
-  onCreateService,
-  onConfirmInvoice,
-  isGenerating,
+  context,
+  onSelectCustomer,
+  onSelectService,
+  isSelecting,
+  onClose,
 }: AIChatMessageProps) {
-  
+  const navigate = useNavigate();
+  const generateMutation = useInvoiceAIGenerate();
+  const isGenerating = generateMutation.isPending;
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState("");
+
+  const handleGenerate = async () => {
+    const requestText = message.sourceText || message.text;
+
+    if (!requestText) {
+      toast.error(
+        "Couldn't find the original request for this preview. Please try again.",
+      );
+      return;
+    }
+
+    try {
+      const result = await generateMutation.mutateAsync({
+        text: requestText,
+        context:
+          context && Object.keys(context).length > 0 ? context : undefined,
+      });
+
+      const invoiceId = result.data.invoice.id;
+      if (invoiceId) {
+        toast.success("Invoice created successfully!");
+        onClose?.();
+        navigate(`/invoice/${invoiceId}`);
+      } else {
+        toast.success("Invoice created successfully!");
+        navigate("/invoices");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to create invoice");
+    }
+  };
+
+  const goToCreateCustomer = (name: string) => {
+    setNewCustomerName(name);
+    setShowNewCustomer(true);
+  };
+
+  const goToCreateService = (name: string) => {
+    navigate("/services/new", { state: { name } });
+  };
+
   // User Message
   if (message.type === "user") {
     return (
@@ -49,7 +114,7 @@ export function AIChatMessage({
         animate={{ opacity: 1, y: 0 }}
         className="flex justify-end"
       >
-        <div className="max-w-[85%] px-4 py-2.5 bg-brand text-white rounded-2xl rounded-br-md text-sm">
+        <div className="max-w-[85%] px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl rounded-br-md text-sm shadow-sm">
           {message.text}
         </div>
       </motion.div>
@@ -64,15 +129,15 @@ export function AIChatMessage({
         animate={{ opacity: 1, y: 0 }}
         className="flex justify-start"
       >
-        <div className="flex items-center gap-3 px-4 py-3 bg-surface-hover rounded-2xl rounded-bl-md">
-          <TbSparkles size={16} className="text-brand animate-pulse" />
+        <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-2xl rounded-bl-md border border-gray-100 shadow-sm">
+          <TbSparkles size={16} className="text-blue-600 animate-pulse" />
           <div className="flex gap-1.5">
             {[0, 1, 2].map((dot) => (
               <motion.span
                 key={dot}
                 animate={{ opacity: [0.3, 1, 0.3] }}
                 transition={{ duration: 1, repeat: Infinity, delay: dot * 0.2 }}
-                className="w-2 h-2 rounded-full bg-brand"
+                className="w-2 h-2 rounded-full bg-blue-500"
               />
             ))}
           </div>
@@ -81,54 +146,191 @@ export function AIChatMessage({
     );
   }
 
-  // AI Error
+  // AI Error with Suggestions
   if (message.error) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex justify-start"
-      >
-        <div className="max-w-[90%] bg-white border border-border rounded-2xl rounded-bl-md overflow-hidden">
-          <div className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
-                <TbAlertTriangle size={16} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary">
-                  {message.error.message}
-                </p>
+      <>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-start"
+        >
+          <div className="max-w-[90%] bg-white border border-gray-200 rounded-2xl rounded-bl-md overflow-hidden shadow-sm">
+            <div className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                  <TbSparkles size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">
+                    {message.error.message}
+                  </p>
 
-                {message.error.type === "CUSTOMER_NOT_FOUND" && (
-                  <button
-                    onClick={() => onCreateCustomer(message.error!.customerName!)}
-                    className="mt-3 w-full px-3 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    <TbUserPlus size={14} />
-                    Create "{message.error.customerName}"
-                  </button>
-                )}
+                  {/* Customer Suggestions */}
+                  {message.error.type === "CUSTOMER_NOT_FOUND" &&
+                    message.error.suggestions && (
+                      <div className="mt-3 space-y-2">
+                        {message.error.suggestions.map(
+                          (customer: CustomerSuggestion, index: number) => (
+                            <motion.button
+                              key={index}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.1 }}
+                              onClick={() => onSelectCustomer?.(customer)}
+                              disabled={isSelecting}
+                              className="w-full flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold shrink-0">
+                                {customer.name.charAt(0)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-gray-900 truncate">
+                                  {customer.name}
+                                </p>
+                                {customer.email && (
+                                  <p className="text-[10px] text-gray-500 truncate">
+                                    {customer.email}
+                                  </p>
+                                )}
+                              </div>
+                              <span className="text-xs text-blue-600 group-hover:translate-x-0.5 transition-transform">
+                                Select →
+                              </span>
+                            </motion.button>
+                          ),
+                        )}
 
-                {message.error.type === "SERVICE_NOT_FOUND" && (
-                  <div className="mt-3 space-y-2">
-                    {message.error.serviceNames?.map((service, index) => (
-                      <button
-                        key={index}
-                        onClick={() => onCreateService(service)}
-                        className="w-full px-3 py-2 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand-dark transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <TbFilter2Plus size={14} />
-                        Create "{service}"
-                      </button>
-                    ))}
-                  </div>
-                )}
+                        {/* Separator */}
+                        <div className="flex items-center gap-3 py-1">
+                          <div className="flex-1 h-px bg-gray-200" />
+                          <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
+                            or
+                          </span>
+                          <div className="flex-1 h-px bg-gray-200" />
+                        </div>
+
+                        {/* Create new customer button */}
+                        <button
+                          onClick={() =>
+                            goToCreateCustomer(message.error!.customerName!)
+                          }
+                          className="w-full px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 hover:shadow-lg hover:shadow-amber-500/30"
+                        >
+                          <TbUserPlus size={16} />
+                          <span>Create new customer</span>
+                        </button>
+                      </div>
+                    )}
+
+                  {/* Service Suggestions */}
+                  {message.error.type === "SERVICE_NOT_FOUND" && (
+                    <div className="mt-3 space-y-2">
+                      {message.error.suggestions &&
+                        message.error.suggestions.length > 0 && (
+                          <>
+                            {message.error.suggestions.map(
+                              (suggestion: any, index: number) => (
+                                <div key={index} className="space-y-2">
+                                  <p className="text-xs font-medium text-gray-700">
+                                    Did you mean one of these for "
+                                    {suggestion.requested}"?
+                                  </p>
+                                  {suggestion.suggestions?.map(
+                                    (
+                                      service: ServiceSuggestion,
+                                      sIndex: number,
+                                    ) => (
+                                      <motion.button
+                                        key={sIndex}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: sIndex * 0.1 }}
+                                        onClick={() =>
+                                          onSelectService?.(service)
+                                        }
+                                        disabled={isSelecting}
+                                        className="w-full flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+                                      >
+                                        <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">
+                                          <TbPackage size={14} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-xs font-medium text-gray-900 truncate">
+                                            {service.name}
+                                          </p>
+                                          <p className="text-[10px] text-gray-500">
+                                            ₹
+                                            {service.price?.toLocaleString?.() ||
+                                              service.price}
+                                          </p>
+                                        </div>
+                                        <span className="text-xs text-blue-600 group-hover:translate-x-0.5 transition-transform">
+                                          Select →
+                                        </span>
+                                      </motion.button>
+                                    ),
+                                  )}
+                                </div>
+                              ),
+                            )}
+                          </>
+                        )}
+
+                      {message.error.serviceNames &&
+                        message.error.serviceNames.length > 0 && (
+                          <div className="flex items-center gap-3 py-1">
+                            <div className="flex-1 h-px bg-gray-200" />
+                            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
+                              or
+                            </span>
+                            <div className="flex-1 h-px bg-gray-200" />
+                          </div>
+                        )}
+
+                      {message.error.serviceNames &&
+                        message.error.serviceNames.length > 0 && (
+                          <>
+                            {message.error.serviceNames.map(
+                              (service, index) => (
+                                <button
+                                  key={`create-${index}`}
+                                  onClick={() => goToCreateService(service)}
+                                  className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2 shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30"
+                                >
+                                  <TbFilter2Plus size={16} />
+                                  <span>Create new service</span>
+                                </button>
+                              ),
+                            )}
+                          </>
+                        )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+
+        {/* New Customer Popup */}
+        {showNewCustomer && (
+          <PopupBottomRight
+            isOpen={showNewCustomer}
+            onClose={() => setShowNewCustomer(false)}
+            title="New Customer"
+            subtitle="Quick create — add a customer instantly"
+          >
+            <NewCustomerForm
+              onSuccess={() => {
+                setShowNewCustomer(false);
+                onClose?.();
+              }}
+              onCancel={() => setShowNewCustomer(false)}
+            />
+          </PopupBottomRight>
+        )}
+      </>
     );
   }
 
@@ -141,43 +343,47 @@ export function AIChatMessage({
         animate={{ opacity: 1, y: 0 }}
         className="flex justify-start"
       >
-        <div className="max-w-[90%] bg-white border border-border rounded-2xl rounded-bl-md overflow-hidden">
-          {/* Preview Header */}
-          <div className="px-4 py-3 bg-surface-hover border-b border-border flex items-center gap-2">
-            <TbFileInvoice size={14} className="text-brand" />
-            <span className="text-xs font-semibold text-text-primary">Invoice Preview</span>
+        <div className="max-w-[90%] bg-white border border-gray-200 rounded-2xl rounded-bl-md overflow-hidden shadow-sm">
+          <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100 flex items-center gap-2">
+            <TbFileInvoice size={14} className="text-blue-600" />
+            <span className="text-xs font-semibold text-gray-900">
+              Invoice Preview
+            </span>
           </div>
 
           <div className="p-4 space-y-3">
-            {/* Customer */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center text-brand text-xs font-bold">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center text-blue-600 text-xs font-bold">
                 {invoice.customer.name.charAt(0)}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-text-primary">{invoice.customer.name}</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {invoice.customer.name}
+                </p>
                 {invoice.customer.email && (
-                  <p className="text-xs text-text-muted">{invoice.customer.email}</p>
+                  <p className="text-xs text-gray-500">
+                    {invoice.customer.email}
+                  </p>
                 )}
               </div>
-              <TbCheck size={16} className="text-success" />
+              <TbCheck size={16} className="text-green-500" />
             </div>
 
-            {/* Items */}
             <div className="space-y-2">
-              {invoice.items.map((item, index) => (
-                <div key={index} className="p-2.5 bg-surface-hover rounded-xl">
+              {(invoice.items || []).map((item: any, index: number) => (
+                <div key={index} className="p-2.5 bg-gray-50 rounded-xl">
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-text-primary truncate">
+                      <p className="text-xs font-medium text-gray-900 truncate">
                         {item.description}
                       </p>
-                      <p className="text-[10px] text-text-muted mt-0.5">
+                      <p className="text-[10px] text-gray-500 mt-0.5">
                         Qty {item.quantity}
-                        {Number(item.discount) > 0 && ` · ${item.discount}% off`}
+                        {Number(item.discount) > 0 &&
+                          ` · ${item.discount}% off`}
                       </p>
                     </div>
-                    <p className="text-xs font-semibold font-mono text-text-primary shrink-0">
+                    <p className="text-xs font-semibold font-mono text-gray-900 shrink-0">
                       ₹{item.total.toLocaleString()}
                     </p>
                   </div>
@@ -185,45 +391,60 @@ export function AIChatMessage({
               ))}
             </div>
 
-            {/* Totals */}
-            <div className="space-y-1.5 pt-2 border-t border-border">
-              <div className="flex justify-between text-xs text-text-muted">
+            <div className="space-y-1.5 pt-2 border-t border-gray-100">
+              <div className="flex justify-between text-xs text-gray-500">
                 <span>Subtotal</span>
-                <span className="font-mono">₹{invoice.subtotal.toLocaleString()}</span>
+                <span className="font-mono">
+                  ₹{invoice.subtotal.toLocaleString()}
+                </span>
               </div>
               {invoice.discount > 0 && (
-                <div className="flex justify-between text-xs text-danger">
+                <div className="flex justify-between text-xs text-red-500">
                   <span>Discount</span>
-                  <span className="font-mono">-₹{invoice.discount.toLocaleString()}</span>
+                  <span className="font-mono">
+                    -₹{invoice.discount.toLocaleString()}
+                  </span>
                 </div>
               )}
-              <div className="flex justify-between text-xs text-text-muted">
+              <div className="flex justify-between text-xs text-gray-500">
                 <span>Tax</span>
-                <span className="font-mono">₹{invoice.tax.toLocaleString()}</span>
+                <span className="font-mono">
+                  ₹{invoice.tax.toLocaleString()}
+                </span>
               </div>
-              <div className="flex justify-between text-sm font-semibold pt-1.5">
-                <span className="text-text-primary">Total</span>
-                <span className="font-mono text-brand">₹{invoice.total.toLocaleString()}</span>
+              <div className="flex justify-between text-sm font-semibold pt-1.5 border-t border-gray-100">
+                <span className="text-gray-900">Total</span>
+                <span className="font-mono text-blue-600">
+                  ₹{invoice.total.toLocaleString()}
+                </span>
               </div>
             </div>
 
-            {/* Warnings */}
-            {message.preview.warnings.length > 0 && (
-              <div className="flex gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl">
-                <TbAlertTriangle size={14} className="text-amber-600 mt-0.5 shrink-0" />
+            {(message.preview.warnings || []).length > 0 && (
+              <div className="flex gap-2 p-2.5 bg-amber-50 border border-amber-100 rounded-xl">
+                <TbSparkles
+                  size={14}
+                  className="text-amber-500 mt-0.5 shrink-0"
+                />
                 <div className="space-y-1">
-                  {message.preview.warnings.map((warning, index) => (
-                    <p key={index} className="text-xs text-amber-700 leading-snug">{warning}</p>
-                  ))}
+                  {(message.preview.warnings || []).map(
+                    (warning: string, index: number) => (
+                      <p
+                        key={index}
+                        className="text-xs text-amber-700 leading-snug"
+                      >
+                        {warning}
+                      </p>
+                    ),
+                  )}
                 </div>
               </div>
             )}
 
-            {/* Confirm Button */}
             <button
-              onClick={onConfirmInvoice}
+              onClick={handleGenerate}
               disabled={isGenerating}
-              className="w-full py-2.5 rounded-xl bg-brand text-sm font-semibold text-white hover:bg-brand-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-sm font-semibold text-white hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-blue-500/20"
             >
               {isGenerating ? "Creating…" : "Confirm & Create Invoice"}
             </button>
@@ -233,14 +454,13 @@ export function AIChatMessage({
     );
   }
 
-  // Default AI Text
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="flex justify-start"
     >
-      <div className="px-4 py-2.5 bg-surface-hover text-text-primary rounded-2xl rounded-bl-md text-sm">
+      <div className="px-4 py-2.5 bg-white text-gray-900 rounded-2xl rounded-bl-md text-sm border border-gray-100 shadow-sm">
         {message.text}
       </div>
     </motion.div>

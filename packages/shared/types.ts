@@ -348,8 +348,6 @@ export interface UpdatePaymentDto {
   status?: "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED";
 }
 
-
-
 export interface User {
   id: string;
   name: string;
@@ -368,8 +366,6 @@ export interface UpdateUserDto {
   name?: string;
   email?: string;
 }
-
-
 
 export interface Notification {
   id: string;
@@ -404,6 +400,17 @@ export interface Notification {
 }
 
 
+/**
+ * Canonical invoice-AI types. These were previously copy-pasted into
+ * invoiceAI.api.ts (three times) and useInvoiceAI.ts (again), while other
+ * files imported the "same" types from "@invoice/shared/types". That's a
+ * duplicate-identifier compile error waiting to happen, and a guarantee
+ * that the copies will eventually drift out of sync with each other.
+ *
+ * Put this file's contents in @invoice/shared/types (merging with
+ * whatever's already there) and have every other file import from there
+ * only - never redeclare.
+ */
 
 export interface InvoiceAIPreview {
   invoice: {
@@ -440,6 +447,32 @@ export interface CustomerSuggestion {
   address: string | null;
 }
 
+export interface ServiceSuggestion {
+  id: string;
+  serviceCode: string;
+  name: string;
+  price: number;
+  taxRate: number;
+  categoryName: string | null;
+}
+
+export interface InvoiceContext {
+  customerName?: string;
+  customerId?: string;
+  services?: Array<{
+    id?: string;
+    name: string;
+    quantity?: number;
+    discount?: number;
+    discountType?: "percentage" | "fixed";
+  }>;
+  discount?: number;
+  discountType?: "percentage" | "fixed";
+  dueDate?: string;
+  notes?: string;
+  termsConditions?: string;
+}
+
 export interface AIAction {
   type: "CREATE_CUSTOMER" | "CREATE_SERVICE";
   label: string;
@@ -451,6 +484,10 @@ export interface AIErrorDetails {
     message: string;
   }>;
   suggestedCustomers?: CustomerSuggestion[];
+  suggestions?: Array<{
+    requested: string;
+    suggestions: ServiceSuggestion[];
+  }>;
   actions?: AIAction[];
 }
 

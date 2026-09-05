@@ -5,10 +5,11 @@ import { HTTP_STATUS } from "../../common/constants/httpStatus";
 import { AppError } from "../../common/errors/AppError";
 import { invoiceAIService } from "./invoiceAI.service";
 import type { InvoiceContext } from "./invoiceAI.types";
+import type { ConversationTurn } from "./invoiceAI.parser";
 
 class InvoiceAIController {
   generateInvoice = asyncHandler(async (req: Request, res: Response) => {
-    const { text, context } = req.body;
+    const { text, context, history } = req.body;
     const userId = (req as any).user?.id;
 
     if (!text || text.trim().length === 0) {
@@ -22,6 +23,7 @@ class InvoiceAIController {
       text,
       userId,
       context as InvoiceContext,
+      history as ConversationTurn[],
     );
 
     return apiResponse({
@@ -33,7 +35,7 @@ class InvoiceAIController {
   });
 
   testParse = asyncHandler(async (req: Request, res: Response) => {
-    const { text, context } = req.body;
+    const { text, context, history } = req.body;
     const userId = (req as any).user?.id;
 
     if (!text || text.trim().length === 0) {
@@ -47,6 +49,7 @@ class InvoiceAIController {
       text,
       userId,
       context as InvoiceContext,
+      history as ConversationTurn[],
     );
 
     return apiResponse({

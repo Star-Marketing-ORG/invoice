@@ -7,19 +7,12 @@ import {
   TbBulb,
   TbArrowRight,
   TbUser,
-  TbWallet,
-  TbCalendar,
-  TbFileInvoice,
   TbBuildingBank,
+  TbCalendar,
   TbDiscount,
 } from "react-icons/tb";
-import { useNavigate } from "react-router-dom";
-import {
-  useInvoiceAIPreview,
-  useInvoiceAIGenerate,
-} from "../../features/hooks/useInvoiceAI";
-import { AIChatMessage, type ChatMessageData } from "./AIChatMessage";
-import { toast } from "../../utils/toast";
+import { AIChatMessage } from "./AIChatMessage";
+import { useInvoiceAIChat } from "../../utils/useAISuggestions";
 
 const QUICK_SUGGESTIONS = [
   { icon: TbUser, text: "Invoice for Ritesh, website, 40% off" },
@@ -34,17 +27,18 @@ const QUICK_SUGGESTIONS = [
 export default function AIFloatingButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [text, setText] = useState("");
-  const [messages, setMessages] = useState<ChatMessageData[]>([]);
   const [showExamples, setShowExamples] = useState(true);
-  const [isTyping, setIsTyping] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const previewMutation = useInvoiceAIPreview();
-  const generateMutation = useInvoiceAIGenerate();
-
-  const isCreating = generateMutation.isPending;
+  const {
+    messages,
+    context,
+    sendText,
+    selectCustomer,
+    selectService,
+    isSelecting,
+  } = useInvoiceAIChat();
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -56,129 +50,19 @@ export default function AIFloatingButton() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handlePreview = async () => {
-    if (!text.trim()) return;
+  const handleSend = (overrideText?: string) => {
+    const value = overrideText ?? text;
+    if (!value.trim()) return;
 
-    const userMessage: ChatMessageData = {
-      id: crypto.randomUUID(),
-      type: "user",
-      text: text,
-    };
-
-    const thinkingMessage: ChatMessageData = {
-      id: crypto.randomUUID(),
-      type: "ai",
-      text: "",
-      isThinking: true,
-    };
-
-    setMessages((prev) => [...prev, userMessage, thinkingMessage]);
     setShowExamples(false);
-    setIsTyping(true);
-
-    try {
-      const result = await previewMutation.mutateAsync(text);
-
-      // Replace thinking with preview
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === thinkingMessage.id
-            ? {
-                id: msg.id,
-                type: "ai",
-                text: "",
-                preview: result.data,
-              }
-            : msg,
-        ),
-      );
-    } catch (error: any) {
-      const details = error.response?.data?.details;
-      const message = error.response?.data?.message || "Something went wrong";
-
-      let errorData: ChatMessageData["error"] = {
-        message,
-        type: "INVALID_INPUT",
-      };
-
-      if (details?.suggestedCustomers) {
-        errorData = {
-          message: `Customer not found. Did you mean one of these?`,
-          type: "CUSTOMER_NOT_FOUND",
-          customerName: message.match(/"([^"]+)"/)?.[1] || "Unknown",
-        };
-      } else if (details?.unmatchedServices) {
-        errorData = {
-          message: "Some services not found",
-          type: "SERVICE_NOT_FOUND",
-          serviceNames: details.unmatchedServices.map((s: any) => s.requested),
-        };
-      }
-
-      // Replace thinking with error
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === thinkingMessage.id
-            ? {
-                id: msg.id,
-                type: "ai",
-                text: "",
-                error: errorData,
-              }
-            : msg,
-        ),
-      );
-    } finally {
-      setText("");
-      setIsTyping(false);
-    }
-  };
-
-  const handleGenerate = async () => {
-    // Get the last user message text
-    const lastUserMessage = messages
-      .filter((m) => m.type === "user")
-      .pop()?.text;
-
-    if (!lastUserMessage) return;
-
-    try {
-      const result = await generateMutation.mutateAsync(lastUserMessage);
-
-      // Close modal
-      setIsOpen(false);
-      setMessages([]);
-      setShowExamples(true);
-      setText("");
-
-      // Redirect to created invoice
-      const invoiceId = result.data.invoice.id;
-      if (invoiceId) {
-        navigate(`/invoice/${invoiceId}`);
-      } else {
-        toast.success("Invoice created successfully!");
-        navigate("/invoices");
-      }
-    } catch (error: any) {
-      console.error("Generate error:", error);
-      // Show error in chat
-      const errorMessage: ChatMessageData = {
-        id: crypto.randomUUID(),
-        type: "ai",
-        text: "",
-        error: {
-          message: error.response?.data?.message || "Failed to create invoice",
-          type: "INVALID_INPUT",
-        },
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    }
+    setText("");
+    sendText(value);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handlePreview();
+      handleSend();
     }
   };
 
@@ -186,16 +70,6 @@ export default function AIFloatingButton() {
     setText(suggestion);
     setShowExamples(false);
     inputRef.current?.focus();
-  };
-
-  const goToCreateCustomer = (name: string) => {
-    setIsOpen(false);
-    navigate("/customers/new", { state: { name } });
-  };
-
-  const goToCreateService = (name: string) => {
-    setIsOpen(false);
-    navigate("/services/new", { state: { name } });
   };
 
   return (
@@ -219,7 +93,6 @@ export default function AIFloatingButton() {
           />
         </div>
 
-        {/* Pulse animation */}
         <motion.div
           initial={{ scale: 1, opacity: 0.4 }}
           animate={{ scale: [1, 1.5], opacity: [0.3, 0] }}
@@ -229,7 +102,7 @@ export default function AIFloatingButton() {
             repeatDelay: 0.5,
             ease: "easeOut",
           }}
-          className="absolute inset-0 rounded-2xl bg-blue-500 pointer-events-none"
+          className="absolute inset-0 rounded-full bg-blue-500 pointer-events-none"
         />
       </motion.button>
 
@@ -329,27 +202,13 @@ export default function AIFloatingButton() {
                   <AIChatMessage
                     key={message.id}
                     message={message}
-                    onCreateCustomer={goToCreateCustomer}
-                    onCreateService={goToCreateService}
-                    onConfirmInvoice={handleGenerate}
-                    isGenerating={isCreating}
+                    context={context}
+                    onSelectCustomer={selectCustomer}
+                    onSelectService={selectService}
+                    isSelecting={isSelecting}
+                    onClose={() => setIsOpen(false)}
                   />
                 ))}
-
-                {isTyping && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex items-center gap-2 text-xs text-gray-400"
-                  >
-                    <div className="flex gap-1">
-                      <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" />
-                      <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-100" />
-                      <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-200" />
-                    </div>
-                    AI is thinking...
-                  </motion.div>
-                )}
 
                 <div ref={messagesEndRef} />
               </div>
@@ -367,8 +226,8 @@ export default function AIFloatingButton() {
                     className="flex-1 px-4 py-3 bg-gray-50 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 border-2 border-gray-200 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
                   />
                   <motion.button
-                    onClick={handlePreview}
-                    disabled={previewMutation.isPending}
+                    onClick={() => handleSend()}
+                    disabled={isSelecting}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Send message"

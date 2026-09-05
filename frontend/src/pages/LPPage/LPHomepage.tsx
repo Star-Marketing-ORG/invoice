@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import About from "../../components/LPComponent/About";
-import Banner from "../../components/LPComponent/Banner";
+import Banner from "../../components/LPComponent/Banner.tsx";
 import Benefit from "../../components/LPComponent/Benefit";
 import CTA from "../../components/LPComponent/CTA";
 import Feature from "../../components/LPComponent/Feature";

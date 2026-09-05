@@ -4,10 +4,10 @@ export interface ParsedInvoiceItem {
   serviceName: string;
   description?: string;
   quantity: number;
-  unitPrice?: number; // Optional - comes from DB
+  unitPrice?: number;
   discount: number;
   discountType: "percentage" | "fixed";
-  taxRate?: number; // Optional - comes from DB
+  taxRate?: number;
 }
 
 export interface ParsedInvoiceData {

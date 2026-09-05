@@ -1,7 +1,7 @@
 import { prisma } from "../../database/client";
 import { AppError } from "../../common/errors/AppError";
 import { HTTP_STATUS } from "../../common/constants/httpStatus";
-import { invoiceAIParser } from "./invoiceAI.parser";
+import { invoiceAIParser, ConversationTurn } from "./invoiceAI.parser";
 import { DiscountUtil } from "../../common/utils/discount.util";
 import { FinancialCalculations } from "../../common/calculations/financial-calculations";
 import type {
@@ -16,104 +16,26 @@ import { invoiceService } from "../invoice/invoice.service";
 import { invoiceAISuggestions } from "./invoiceAI.suggestions";
 
 export class InvoiceAIService {
-
   async generateInvoiceFromText(
     text: string,
     userId?: string,
     context?: InvoiceContext,
+    history: ConversationTurn[] = [],
   ): Promise<GenerateInvoiceAIResponse> {
-    let mergedData: ParsedInvoiceData;
+    const prepared = await this.prepareInvoiceData(text, context, history);
 
-    if (context && this.isModificationRequest(text)) {
-      mergedData = this.buildFromContext(text, context);
-    } else {
-      const parsedData = await invoiceAIParser.parseInvoiceText(text);
-      mergedData = context
-        ? this.mergeWithContext(parsedData, context)
-        : parsedData;
-    }
-
-    invoiceAIParser.validateParsedData(mergedData);
-
-    const customerResult = await this.findCustomer(mergedData);
-
-    const matchedServices = await this.matchServices(mergedData.items);
-
-    const unmatchedServices = matchedServices.filter(
-      (s) => !s.matched || s.suggestions?.length,
+    const { invoiceItems, warnings } = this.buildInvoiceItemsWithWarnings(
+      prepared.mergedData,
+      prepared.matchedServices,
     );
-
-    if (unmatchedServices.length > 0) {
-      throw new AppError({
-        statusCode: HTTP_STATUS.NOT_FOUND,
-        message: "Some services need clarification",
-        details: {
-          unmatchedServices: unmatchedServices.map((s) => ({
-            requested: s.requested,
-            message: s.suggestions?.length
-              ? `Multiple services found for "${s.requested}". Please select one.`
-              : `Service "${s.requested}" not found. Please create it first.`,
-          })),
-          suggestions: unmatchedServices.map((s) => ({
-            requested: s.requested,
-            suggestions: s.suggestions || [],
-          })),
-          actions: unmatchedServices
-            .filter((s) => !s.suggestions?.length)
-            .map((s) => ({
-              type: "CREATE_SERVICE",
-              label: `Create service "${s.requested}"`,
-            })),
-        },
-      });
-    }
-
-    // Prepare invoice items with discount validation
-    const allWarnings: string[] = [...customerResult.warnings];
-    
-    const invoiceItems = matchedServices.map((service, index) => {
-      const parsedItem = mergedData.items[index];
-      const dbPrice = service.matched!.unitPrice;
-      const dbTaxRate = service.matched!.taxRate;
-      const quantity = parsedItem.quantity || 1;
-
-      // Check if discount exceeds price
-      if (parsedItem.discountType === 'fixed' && parsedItem.discount > dbPrice * quantity) {
-        allWarnings.push(
-          `Discount ₹${parsedItem.discount} exceeds service price ₹${dbPrice * quantity} for "${service.matched!.name}". Capped at 100%.`
-        );
-      }
-
-      if (parsedItem.discountType === 'percentage' && parsedItem.discount > 100) {
-        allWarnings.push(
-          `Discount ${parsedItem.discount}% exceeds 100% for "${service.matched!.name}". Capped at 100%.`
-        );
-      }
-
-      const discountPercentage = DiscountUtil.convertToPercentage(
-        parsedItem.discount,
-        parsedItem.discountType,
-        dbPrice,
-        quantity,
-      );
-
-      return {
-        serviceId: service.matched!.id,
-        description: service.matched!.name,
-        quantity: quantity,
-        unitPrice: dbPrice,
-        taxRate: dbTaxRate,
-        discount: Math.round(discountPercentage * 100) / 100,
-      };
-    });
 
     const invoice = await invoiceService.createInvoice(
       {
-        customerId: customerResult.customer.id,
+        customerId: prepared.customerResult.customer.id,
         issueDate: new Date().toISOString(),
-        dueDate: mergedData.dueDate,
-        notes: mergedData.notes,
-        termsConditions: mergedData.termsConditions,
+        dueDate: prepared.mergedData.dueDate,
+        notes: prepared.mergedData.notes,
+        termsConditions: prepared.mergedData.termsConditions,
         items: invoiceItems,
       },
       userId,
@@ -142,7 +64,7 @@ export class InvoiceAIService {
           total: Math.round(Number(item.total) * 100) / 100,
         })),
       },
-      warnings: allWarnings,
+      warnings: [...prepared.customerResult.warnings, ...warnings],
     };
   }
 
@@ -150,89 +72,14 @@ export class InvoiceAIService {
     text: string,
     userId?: string,
     context?: InvoiceContext,
+    history: ConversationTurn[] = [],
   ): Promise<GenerateInvoiceAIResponse> {
-    let mergedData: ParsedInvoiceData;
+    const prepared = await this.prepareInvoiceData(text, context, history);
 
-    if (context && this.isModificationRequest(text)) {
-      mergedData = this.buildFromContext(text, context);
-    } else {
-      const parsedData = await invoiceAIParser.parseInvoiceText(text);
-      mergedData = context
-        ? this.mergeWithContext(parsedData, context)
-        : parsedData;
-    }
-
-    invoiceAIParser.validateParsedData(mergedData);
-
-    const customerResult = await this.findCustomer(mergedData);
-
-    const matchedServices = await this.matchServices(mergedData.items);
-
-    const unmatchedServices = matchedServices.filter(
-      (s) => !s.matched || s.suggestions?.length,
+    const { invoiceItems, warnings } = this.buildInvoiceItemsWithWarnings(
+      prepared.mergedData,
+      prepared.matchedServices,
     );
-
-    if (unmatchedServices.length > 0) {
-      throw new AppError({
-        statusCode: HTTP_STATUS.NOT_FOUND,
-        message: "Some services need clarification",
-        details: {
-          unmatchedServices: unmatchedServices.map((s) => ({
-            requested: s.requested,
-            message: s.suggestions?.length
-              ? `Multiple services found for "${s.requested}". Please select one.`
-              : `Service "${s.requested}" not found. Please create it first.`,
-          })),
-          suggestions: unmatchedServices.map((s) => ({
-            requested: s.requested,
-            suggestions: s.suggestions || [],
-          })),
-          actions: unmatchedServices
-            .filter((s) => !s.suggestions?.length)
-            .map((s) => ({
-              type: "CREATE_SERVICE",
-              label: `Create service "${s.requested}"`,
-            })),
-        },
-      });
-    }
-
-    const allWarnings: string[] = [...customerResult.warnings];
-    
-    const invoiceItems = matchedServices.map((service, index) => {
-      const parsedItem = mergedData.items[index];
-      const dbPrice = service.matched!.unitPrice;
-      const dbTaxRate = service.matched!.taxRate;
-      const quantity = parsedItem.quantity || 1;
-
-      if (parsedItem.discountType === 'fixed' && parsedItem.discount > dbPrice * quantity) {
-        allWarnings.push(
-          `Discount ₹${parsedItem.discount} exceeds service price ₹${dbPrice * quantity} for "${service.matched!.name}". Capped at 100%.`
-        );
-      }
-
-      if (parsedItem.discountType === 'percentage' && parsedItem.discount > 100) {
-        allWarnings.push(
-          `Discount ${parsedItem.discount}% exceeds 100% for "${service.matched!.name}". Capped at 100%.`
-        );
-      }
-
-      const discountPercentage = DiscountUtil.convertToPercentage(
-        parsedItem.discount,
-        parsedItem.discountType,
-        dbPrice,
-        quantity,
-      );
-
-      return {
-        serviceId: service.matched!.id,
-        description: service.matched!.name,
-        quantity: quantity,
-        unitPrice: dbPrice,
-        taxRate: dbTaxRate,
-        discount: Math.round(discountPercentage * 100) / 100,
-      };
-    });
 
     const totals = FinancialCalculations.calculateTotals(invoiceItems);
 
@@ -246,9 +93,9 @@ export class InvoiceAIService {
         tax: Math.round(totals.tax * 100) / 100,
         total: Math.round(totals.total * 100) / 100,
         customer: {
-          id: customerResult.customer.id,
-          name: customerResult.customer.name,
-          email: customerResult.customer.email,
+          id: prepared.customerResult.customer.id,
+          name: prepared.customerResult.customer.name,
+          email: prepared.customerResult.customer.email,
         },
         items: invoiceItems.map((item: any) => ({
           description: item.description,
@@ -256,10 +103,12 @@ export class InvoiceAIService {
           unitPrice: Math.round(Number(item.unitPrice) * 100) / 100,
           discount: Math.round(Number(item.discount) * 100) / 100,
           taxRate: Number(item.taxRate),
-          total: Math.round(FinancialCalculations.calculateItemTotal(item) * 100) / 100,
+          total:
+            Math.round(FinancialCalculations.calculateItemTotal(item) * 100) /
+            100,
         })),
       },
-      warnings: allWarnings,
+      warnings: [...prepared.customerResult.warnings, ...warnings],
     };
   }
 
@@ -267,99 +116,112 @@ export class InvoiceAIService {
     text: string,
     userId?: string,
     context?: InvoiceContext,
+    history: ConversationTurn[] = [],
   ): Promise<ParsedInvoiceData> {
-    let mergedData: ParsedInvoiceData;
-
-    if (context && this.isModificationRequest(text)) {
-      mergedData = this.buildFromContext(text, context);
-    } else {
-      const parsedData = await invoiceAIParser.parseInvoiceText(text);
-      mergedData = context
-        ? this.mergeWithContext(parsedData, context)
-        : parsedData;
-    }
+    const contextTurns = this.contextToHistoryTurns(context);
+    const parsedData = await invoiceAIParser.parseInvoiceText(text, [
+      ...contextTurns,
+      ...history,
+    ]);
+    const mergedData = context
+      ? this.mergeWithContext(parsedData, context)
+      : parsedData;
 
     invoiceAIParser.validateParsedData(mergedData);
     return mergedData;
   }
 
-  private isModificationRequest(text: string): boolean {
-    const lower = text.toLowerCase();
-    return (
-      lower.includes("discount") ||
-      lower.includes("off") ||
-      lower.includes("add") ||
-      lower.includes("update") ||
-      lower.includes("change") ||
-      lower.includes("remove") ||
-      lower.includes("due date") ||
-      lower.includes("confirm") ||
-      lower.includes("apply")
+  private async prepareInvoiceData(
+    text: string,
+    context: InvoiceContext | undefined,
+    history: ConversationTurn[],
+  ): Promise<{
+    mergedData: ParsedInvoiceData;
+    customerResult: CustomerMatchResult;
+    matchedServices: MatchedService[];
+  }> {
+    // Build history from context + conversation
+    const contextTurns = this.contextToHistoryTurns(context);
+
+    // Combine: context snapshot + actual conversation history
+    const fullHistory = [...contextTurns, ...history];
+
+    // Pass full history to parser
+    const parsedData = await invoiceAIParser.parseInvoiceText(
+      text,
+      fullHistory,
     );
+
+    const mergedData = context
+      ? this.mergeWithContext(parsedData, context)
+      : parsedData;
+
+    invoiceAIParser.validateParsedData(mergedData);
+
+    // Check if services are empty
+    if (!mergedData.items || mergedData.items.length === 0) {
+      throw new AppError({
+        statusCode: HTTP_STATUS.NOT_FOUND,
+        message: "Could not identify any service in your request",
+        details: {
+          suggestedServices: [],
+          unmatchedServices: [],
+          actions: [
+            {
+              type: "CREATE_SERVICE",
+              label: "Create new service",
+            },
+          ],
+        },
+      });
+    }
+
+    const customerResult = await this.findCustomer(mergedData, context);
+    const matchedServices = await this.matchServices(mergedData.items);
+
+    const unmatchedServices = matchedServices.filter(
+      (s) => !s.matched || s.suggestions?.length,
+    );
+
+    if (unmatchedServices.length > 0) {
+      throw this.buildUnmatchedServiceError(unmatchedServices);
+    }
+
+    return { mergedData, customerResult, matchedServices };
   }
 
-  private buildFromContext(
-    text: string,
-    context: InvoiceContext,
-  ): ParsedInvoiceData {
-    const lower = text.toLowerCase();
+  private contextToHistoryTurns(context?: InvoiceContext): ConversationTurn[] {
+    if (!context) return [];
 
-    const data: ParsedInvoiceData = {
+    const hasAnyState =
+      context.customerName ||
+      (context.services && context.services.length > 0) ||
+      context.dueDate ||
+      context.notes ||
+      context.termsConditions;
+
+    if (!hasAnyState) return [];
+
+    const snapshot = {
+      error: false,
       customerName: context.customerName || "",
-      customerEmail: "",
-      customerPhone: "",
       items: (context.services || []).map((service) => ({
         serviceName: service.name,
-        description: service.name,
         quantity: service.quantity || 1,
-        unitPrice: 0,
         discount: service.discount || 0,
         discountType: service.discountType || "percentage",
-        taxRate: 0,
       })),
       dueDate: context.dueDate || "",
       notes: context.notes || "",
       termsConditions: context.termsConditions || "",
     };
 
-    const percentageMatch = lower.match(/(\d+)%\s*(?:off|discount)?/);
-    if (percentageMatch) {
-      const discount = parseInt(percentageMatch[1]);
-      data.items = data.items.map((item) => ({
-        ...item,
-        discount: discount,
-        discountType: "percentage",
-      }));
-    }
-
-    const fixedMatch = lower.match(/(\d+)\s*k?\s*(?:off|flat)/);
-    if (fixedMatch) {
-      let amount = parseInt(fixedMatch[1]);
-      if (lower.includes("k")) {
-        amount *= 1000;
-      }
-      data.items = data.items.map((item) => ({
-        ...item,
-        discount: amount,
-        discountType: "fixed",
-      }));
-    }
-
-    if (lower.includes("due")) {
-      const today = new Date();
-      if (lower.includes("next week")) {
-        today.setDate(today.getDate() + 7);
-      } else if (lower.includes("tomorrow")) {
-        today.setDate(today.getDate() + 1);
-      } else if (lower.includes("in 15 days")) {
-        today.setDate(today.getDate() + 15);
-      } else if (lower.includes("in 30 days")) {
-        today.setDate(today.getDate() + 30);
-      }
-      data.dueDate = today.toISOString().split("T")[0];
-    }
-
-    return data;
+    return [
+      {
+        role: "assistant",
+        content: `Current invoice state: ${JSON.stringify(snapshot)}`,
+      },
+    ];
   }
 
   private mergeWithContext(
@@ -418,10 +280,114 @@ export class InvoiceAIService {
     return merged;
   }
 
+  private buildInvoiceItemsWithWarnings(
+    mergedData: ParsedInvoiceData,
+    matchedServices: MatchedService[],
+  ): { invoiceItems: any[]; warnings: string[] } {
+    const warnings: string[] = [];
+
+    const invoiceItems = matchedServices.map((service, index) => {
+      const parsedItem = mergedData.items[index];
+      const dbPrice = service.matched!.unitPrice;
+      const dbTaxRate = service.matched!.taxRate;
+      const quantity = parsedItem.quantity || 1;
+      const maxFixedDiscount = dbPrice * quantity;
+
+      let discount = parsedItem.discount || 0;
+      const discountType =
+        parsedItem.discountType === "fixed" ? "fixed" : "percentage";
+
+      if (discountType === "fixed" && discount > maxFixedDiscount) {
+        warnings.push(
+          `Discount ₹${discount} exceeds service price ₹${maxFixedDiscount} for "${service.matched!.name}". Capped at ₹${maxFixedDiscount}.`,
+        );
+        discount = maxFixedDiscount;
+      }
+
+      if (discountType === "percentage" && discount > 100) {
+        warnings.push(
+          `Discount ${discount}% exceeds 100% for "${service.matched!.name}". Capped at 100%.`,
+        );
+        discount = 100;
+      }
+
+      const discountPercentage = DiscountUtil.convertToPercentage(
+        discount,
+        discountType,
+        dbPrice,
+        quantity,
+      );
+
+      return {
+        serviceId: service.matched!.id,
+        description: service.matched!.name,
+        quantity,
+        unitPrice: dbPrice,
+        taxRate: dbTaxRate,
+        discount: Math.round(Math.min(discountPercentage, 100) * 100) / 100,
+      };
+    });
+
+    return { invoiceItems, warnings };
+  }
+
+  private buildUnmatchedServiceError(
+    unmatchedServices: MatchedService[],
+  ): AppError {
+    const servicesWithSuggestions = unmatchedServices.filter(
+      (s) => s.suggestions && s.suggestions.length > 0,
+    );
+    const servicesWithoutSuggestions = unmatchedServices.filter(
+      (s) => !s.suggestions || s.suggestions.length === 0,
+    );
+
+    return new AppError({
+      statusCode: HTTP_STATUS.NOT_FOUND,
+      message:
+        servicesWithSuggestions.length > 0
+          ? `Service "${servicesWithSuggestions[0].requested}" not found. Did you mean one of these?`
+          : `Service "${servicesWithoutSuggestions[0]?.requested || "unknown"}" not found. Please create it first.`,
+      details: {
+        suggestedServices: servicesWithSuggestions.map((s) => ({
+          requested: s.requested,
+          suggestions: s.suggestions || [],
+        })),
+        unmatchedServices: servicesWithoutSuggestions.map((s) => ({
+          requested: s.requested,
+          message: `Service "${s.requested}" not found. Please create it first.`,
+        })),
+        actions: servicesWithoutSuggestions.map((s) => ({
+          type: "CREATE_SERVICE",
+          label: `Create new service "${s.requested}"`,
+        })),
+      },
+    });
+  }
+
   private async findCustomer(
     parsedData: ParsedInvoiceData,
+    context?: InvoiceContext,
   ): Promise<CustomerMatchResult> {
     const warnings: string[] = [];
+
+    if (context?.customerId) {
+      const customer = await prisma.customer.findUnique({
+        where: { id: context.customerId },
+      });
+
+      if (customer) {
+        return {
+          customer: {
+            id: customer.id,
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            isNew: false,
+          },
+          warnings,
+        };
+      }
+    }
 
     const orConditions: any[] = [
       { name: { equals: parsedData.customerName, mode: "insensitive" } },
@@ -506,7 +472,6 @@ export class InvoiceAIService {
         const searchTerm = item.serviceName.toLowerCase().trim();
         const searchWords = searchTerm.split(/[\s-]+/).filter(Boolean);
 
-        // 1. Exact match
         const exactMatch = allServices.find(
           (service) => service.name.toLowerCase() === searchTerm,
         );
@@ -524,16 +489,15 @@ export class InvoiceAIService {
           };
         }
 
-        // 2. Score ALL services based on word overlap
         const scoredServices = allServices.map((service) => {
           const serviceName = service.name.toLowerCase();
           const serviceWords = serviceName.split(/[\s-]+/).filter(Boolean);
-          
+
           let score = 0;
-          
+
           searchWords.forEach((word) => {
             if (word.length < 3) return;
-            
+
             if (serviceName === word) {
               score += 100;
             } else if (serviceName.includes(word)) {
@@ -546,7 +510,7 @@ export class InvoiceAIService {
           const matchedWordsCount = searchWords.filter((word) =>
             serviceName.includes(word),
           ).length;
-          
+
           if (matchedWordsCount > 1) {
             score += matchedWordsCount * 30;
           }
@@ -559,21 +523,17 @@ export class InvoiceAIService {
           .sort((a, b) => b.score - a.score);
 
         if (matchedServices.length === 0) {
-          const searchSuggestions = await invoiceAISuggestions.suggestServices(
-            item.serviceName,
-          );
-          
           return {
             requested: item.serviceName,
             matched: null,
             confidence: 0,
-            suggestions: searchSuggestions,
+            suggestions: [],
           };
         }
 
         const bestMatch = matchedServices[0];
         const secondBest = matchedServices[1];
-        
+
         if (!secondBest || bestMatch.score >= secondBest.score + 30) {
           return {
             requested: item.serviceName,

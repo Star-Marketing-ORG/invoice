@@ -1,4 +1,16 @@
+import type { InvoiceAIPreview, InvoiceContext } from "@invoice/shared/types";
 import axiosInstance from "../../utils/axios";
+
+/**
+ * Fix vs the original: this file used to import InvoiceAIPreview and
+ * InvoiceContext from "@invoice/shared/types" and then re-declare
+ * `export interface InvoiceAIPreview { ... }` (and CustomerSuggestion,
+ * AIAction, AIErrorDetails) three separate times further down the file -
+ * a duplicate-identifier error that also conflicts directly with the
+ * import. All type definitions now live in exactly one place
+ * (@invoice/shared/types, see invoiceAI.types.ts) and this file only
+ * imports them.
+ */
 
 interface ApiResponse<T> {
   success: boolean;
@@ -6,42 +18,25 @@ interface ApiResponse<T> {
   data: T;
 }
 
-export interface InvoiceAIPreview {
-  invoice: {
-    id: string;
-    invoiceNumber: string;
-    status: string;
-    subtotal: number;
-    discount: number;
-    tax: number;
-    total: number;
-    customer: {
-      id: string;
-      name: string;
-      email: string;
-    };
-    items: Array<{
-      description: string;
-      quantity: number;
-      unitPrice: number;
-      discount: number;
-      taxRate: number;
-      total: number;
-    }>;
-  };
-  warnings: string[];
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
 }
 
-export interface InvoiceAIGenerateResponse extends InvoiceAIPreview {}
+export interface AIRequest {
+  text: string;
+  context?: InvoiceContext;
+  history?: ConversationTurn[];
+}
 
 export const invoiceAIApi = {
-  preview: (text: string) =>
+  preview: (data: AIRequest) =>
     axiosInstance
-      .post<ApiResponse<InvoiceAIPreview>>("/invoice/test-parse", { text })
+      .post<ApiResponse<InvoiceAIPreview>>("/invoice/test-parse", data)
       .then((res) => res.data),
 
-  generate: (text: string) =>
+  generate: (data: AIRequest) =>
     axiosInstance
-      .post<ApiResponse<InvoiceAIGenerateResponse>>("/invoice/generate", { text })
+      .post<ApiResponse<InvoiceAIPreview>>("/invoice/generate", data)
       .then((res) => res.data),
 };
