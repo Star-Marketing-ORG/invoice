@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/TablePage/Dashboard";
 import Invoices from "./pages/TablePage/Invoices";
@@ -49,13 +49,14 @@ function App() {
     );
   }
 
+  const location = useLocation();
+
   return (
     <div className="">
-      <AIFloatingButton />
+      {location.pathname !== "/" && <AIFloatingButton />}
       <Routes>
         {/* Landing page route - outside dashboard layout */}
         <Route path="/" element={<LPHomepage />} />
-        
 
         {/* Dashboard routes */}
         <Route element={<DashboardLayout />}>

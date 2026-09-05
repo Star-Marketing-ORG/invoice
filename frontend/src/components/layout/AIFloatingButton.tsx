@@ -21,7 +21,6 @@ const QUICK_SUGGESTIONS = [
     icon: TbCalendar,
     text: "Invoice for Suresh, web development, due next week",
   },
-  { icon: TbDiscount, text: "Quotation for Priya, branding, 50% discount" },
 ];
 
 export default function AIFloatingButton() {
@@ -126,7 +125,7 @@ export default function AIFloatingButton() {
               role="dialog"
               aria-modal="true"
               aria-label="AI invoice assistant"
-              className="fixed bottom-24 right-4 md:bottom-28 md:right-8 z-50 w-[95vw] max-w-[420px] max-h-[70vh] md:max-h-[75vh] flex flex-col bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden"
+              className="fixed bottom-24 right-4 md:bottom-28 md:right-8 z-50 w-[95vw] max-w-[450px] max-h-[80vh] md:max-h-[80vh] flex flex-col bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden"
             >
               {/* Header */}
               <div className="relative px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 shrink-0">
@@ -222,7 +221,7 @@ export default function AIFloatingButton() {
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder='Try: "Make invoice for Ritesh, website, 40% off"'
-                    rows={2}
+                    rows={1}
                     className="flex-1 px-4 py-3 bg-gray-50 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 border-2 border-gray-200 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
                   />
                   <motion.button

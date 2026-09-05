@@ -93,7 +93,7 @@ export function AIChatMessage({
         navigate("/invoices");
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to create invoice");
+      // toast.error(error.response?.data?.message || "Failed to create invoice");
     }
   };
 

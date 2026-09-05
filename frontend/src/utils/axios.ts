@@ -2,8 +2,7 @@ import axios from "axios";
 import { toast } from "./toast";
 
 const axiosInstance = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -26,6 +25,15 @@ axiosInstance.interceptors.response.use(
 
     if (isAuthError && isGetRequest) {
       return Promise.reject(error);
+    }
+
+    // Skip toast for AI endpoints - errors shown in chat
+    const url = error.config?.url || "";
+    const isAIEndpoint =
+      url.includes("/invoice/test-parse") || url.includes("/invoice/generate");
+
+    if (isAIEndpoint) {
+      return Promise.reject(error); // No toast for AI errors
     }
 
     if (error.response?.status >= 500) {
